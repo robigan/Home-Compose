@@ -1,0 +1,37 @@
+version: '3.9'
+
+services:
+  proxy:
+    image: divax/i2p:current
+    networks:
+      - default
+      - proxy
+    # volumes:
+    #   - conf:/conf
+    expose:
+    #   - 4444
+    #   - 4445
+      - 7070 # Web dashboard is exposed on this port
+    ports:
+      - 4444:4444
+      - 4445:4445
+    environment:
+      ENABLE_HTTPPROXY: ${ENABLE_HTTP:-1}
+      ENABLE_SOCKSPROXY: ${ENABLE_SOCKS:-1}
+      BANDWIDTH: ${BANDWIDTH:-P} # Sets the bandwidth limit to 2048KB/s
+      ENABLE_UPNP: ${ENABLE_UPNP:-0} # I have UPNP disabled on my router for my home services
+    labels:
+      traefik.enable: true
+      traefik.http.routers.i2p.entrypoints: websecure
+      traefik.http.routers.i2p.rule: Host(`${PRIVATE_HOST:?UNSET_PRIVATE_HOST_ERROR}`)
+      traefik.http.routers.i2p.tls: true
+      traefik.http.services.proxy-i2p.loadbalancer.server.port: 7070
+
+networks:
+  proxy:
+    external: true
+    name: proxy
+
+# volumes:
+#   conf:
+#     name: i2p-conf

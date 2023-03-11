@@ -1,0 +1,42 @@
+version: "3.9"
+
+services:
+  controller:
+    image: linuxserver/unifi-controller:latest
+    restart: unless-stopped
+    volumes:
+      - data:/config # All Unifi data stored here
+    ports:
+    # See https://help.ui.com/hc/en-us/articles/218506997-UniFi-Network-Required-Ports-Reference
+      - 10001:10001/udp # Required for AP discovery
+#     - 8880:8880/tcp # Unifi guest portal HTTP redirect port # Disabled. I don't use guest portal.
+#     - 8843:8843/tcp # Unifi guest portal HTTPS redirect port # Disabled. I don't use guest portal.
+#     - 8443:8443/tcp # Unifi web admin port # Tunneled through traefik
+      - 8080:8080/tcp # Required for device communication
+      - 6789:6789/tcp # For mobile throughput test
+      - 5514:5514/tcp # Remote syslog port
+      - 3478:3478/udp # Unifi STUN port
+      - 1900:1900/udp # Required for Make controller discoverable on L2 network option
+      - 123:123/udp   # NTP port
+      - 53:53/tcp     # DNS port
+      - 53:53/udp     # DNS port
+    networks: # Attach to proxy network and default routing network
+      - default
+      - proxy
+    labels: # Labels for Traefik
+      traefik.enable: true # Enable in Traefik
+      traefik.http.routers.unifi.entrypoints: ${TRAEFIK_ENCRYPTED_ENTRYPOINT:-websecure} # Use websecure entrypoint by default
+      traefik.http.routers.unifi.rule: Host(`${PRIVATE_HOST:?UNSET_PRIVATE_HOST_ERROR}`) # Local, private host
+      traefik.http.routers.unifi.tls: true # Enable TLS
+      traefik.http.services.controller-unifi.loadbalancer.server.port: 8443 # Specify port 8443
+      traefik.http.services.controller-unifi.loadbalancer.server.scheme: https # Connect to unifi via https
+      traefik.http.services.controller-unifi.loadbalancer.serverstransport: httpsNoVerify@file # But don't verify the certificate. This is a serversTransport specified through a file. Found at traefik-tls.yml in the root of this repo.
+
+volumes:
+  data:
+    name: controller-data # Data persistence volume
+    
+networks:
+  proxy:
+    name: proxy
+    external: true

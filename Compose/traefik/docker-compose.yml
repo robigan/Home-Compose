@@ -1,0 +1,49 @@
+version: "3.9"
+
+services:
+  reverse-proxy:
+    image: traefik:v2.9
+    networks:
+      - default # Defualt network that Traefik can use for update checking
+      - proxy # Proxy network
+    ports:
+      - 443:443 # Websecure port
+      - 80:80 # Web port
+    restart: unless-stopped
+    command:
+      - "--global.sendanonymoususage=false" # Disable anonymous usage data
+      - "--entrypoints.web.address=:80" # Provide an entrypoint for HTTP traffic
+      # Doesn't redirect by default to HTTPS scheme for services that legitimately need HTTP
+      - "--entrypoints.websecure.address=:443" # Provide a secure entrypoint for HTTPS traffic
+      - "--api.insecure=false" # Disable insecure API
+      - "--api.dashboard=true" # But do enable the dashboard
+      - "--providers.docker=true" # Enable docker provider
+      - "--providers.docker.exposedbydefault=false" # Disable exposing services by default
+      - "--providers.docker.network=proxy" # Set the default docker network to proxy
+      - "--providers.file.filename=/ssl-certs/traefik-tls.yml" # Define dynamic configuration for TLS
+      - "--accesslog=${ACCESS_LOG:-false}" # Access log definition, values are 'true' or 'false' 
+      - "--log.level=${LOG_LEVEL:-ERROR}" # Log level definition, see https://doc.traefik.io/traefik/observability/logs/#level
+      - "--experimental.plugins.cloudflarewarp.modulename=github.com/BetterCorp/cloudflarewarp" # Add cloudflarewarp plugin
+      - "--experimental.plugins.cloudflarewarp.version=v1.3.3" # Specify version(s)
+    labels:
+      # Enable traefik labels for this definition
+      traefik.enable: true
+      # Setup router, see https://community.traefik.io/t/serving-traefiks-internal-dashboard-behind-traefik-itself/3457/7
+      traefik.http.routers.traefik.entrypoints: websecure # Setup an http router to the dashboard
+      traefik.http.routers.traefik.rule: Host(`${PRIVATE_HOST:?UNSET_PRIVATE_HOST_ERROR}`) # Use this host
+      traefik.http.routers.traefik.tls: true # Enable TLS for this router
+      traefik.http.routers.traefik.service: api@internal # Route to api service
+      # Define cloudflare middleware
+      traefik.http.middlewares.cloudflare.plugin.cloudflarewarp.disableDefault: false # Set the disable default to false. Creates the cloudflarewarp middleware and uses IPs listed at cloudflare.com
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro # Mount the docker socket so that traefik can monitor it
+      - traefik-ssl-certs:/ssl-certs # Trraefik SSL Certs volume
+
+networks:
+  proxy: # Connect to proxy network
+    # NOTE: Proxy network is external. When setting it up, it should always be internal, so not routable to the internet
+    external: true
+    name: proxy
+
+volumes:
+  traefik-ssl-certs: # Volume with ssl certs. This volume will require the traefik-tls.yml file found at the root of this repo to be at the root of this volume. It'll also need the certificates at the locations specified in traefik-tls.yml
