@@ -13,7 +13,6 @@ services:
     #  - 7070:7070 # Web console
     volumes:
       - data:/home/i2pd/data
-      - ./conf.env:/home/i2pd/data/i2pd.conf
     labels:
       traefik.enable: true
       traefik.http.routers.i2p.entrypoints: websecure
