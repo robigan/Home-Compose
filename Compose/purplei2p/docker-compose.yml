@@ -3,22 +3,29 @@ version: '3.9'
 services:
   proxy:
     image: purplei2p/i2pd:latest-release
+    restart: unless-stopped
     networks:
       - default
       - proxy
     ports:
       - 4444:4444 # HTTP Proxy
-      - 4445:4445 # SOCKS Proxy
-      - 7656:7656 # SAM
+      # - 4445:4445 # SOCKS Proxy (Disabled in conf)
+      # - 7656:7656 # SAM (Disabled in conf)
       - 7070:7070 # Web console
     volumes:
       - data:/home/i2pd/data
     labels:
       traefik.enable: true
+      traefik.http.routers.i2p-dashboard.entrypoints: websecure
+      traefik.http.routers.i2p-dashboard.rule: Host(`${PRIVATE_HOST_DASHBOARD:?UNSET_PRIVATE_HOST_DASHBOARD_ERROR}`)
+      traefik.http.routers.i2p-dashboard.tls: true
+      traefik.http.routers.i2p-dashboard.service: proxy-i2p-dashboard
+      traefik.http.services.proxy-i2p-dashboard.loadbalancer.server.port: 7070
       traefik.http.routers.i2p.entrypoints: websecure
       traefik.http.routers.i2p.rule: Host(`${PRIVATE_HOST:?UNSET_PRIVATE_HOST_ERROR}`)
       traefik.http.routers.i2p.tls: true
-      traefik.http.services.proxy-i2p.loadbalancer.server.port: 7070
+      traefik.http.routers.i2p.service: proxy-i2p
+      traefik.http.services.proxy-i2p.loadbalancer.server.port: 4444
 
 networks:
   proxy:
