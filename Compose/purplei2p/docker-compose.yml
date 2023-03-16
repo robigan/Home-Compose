@@ -7,11 +7,12 @@ services:
     networks:
       - default
       - proxy
-    ports:
-      - 4444:4444 # HTTP Proxy
+    # ports:
       # - 4445:4445 # SOCKS Proxy (Disabled in conf)
       # - 7656:7656 # SAM (Disabled in conf)
-      - 7070:7070 # Web console
+    expose:
+      - 4444 # HTTP Proxy
+      - 7070 # Web console
     volumes:
       - data:/home/i2pd/data
     labels:
