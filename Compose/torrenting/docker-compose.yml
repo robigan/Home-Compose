@@ -1,0 +1,203 @@
+version: "3.9"
+services:
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:develop
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-Europe/Rome}
+    volumes:
+      - pl-conf:/config
+    labels:
+      traefik.enable: true
+      traefik.http.routers.prowlarr.entrypoints: websecure
+      traefik.http.routers.prowlarr.rule: Host(`${PRIVATE_HOST_PROWLARR:?UNSET_PRIVATE_HOST_PROWLARR_ERROR}`)
+      traefik.http.routers.prowlarr.tls: true
+    networks:
+      - default
+      - proxy
+
+  jellyfin:
+    image: lscr.io/linuxserver/jellyfin:latest
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-Europe/Rome}
+    labels:
+      traefik.enable: true
+      traefik.http.routers.jellyfin-insecure.entrypoints: web
+      traefik.http.routers.jellyfin-insecure.rule: Host(`${PRIVATE_HOST_JELLYFIN:?UNSET_PRIVATE_HOST_JELLYFIN_ERROR}`)
+      traefik.http.routers.jellyfin-insecure.middlewares: jellyfin-insecure-whitelist
+      traefik.http.routers.jellyfin.entrypoints: websecure
+      traefik.http.routers.jellyfin.rule: Host(`${PRIVATE_HOST_JELLYFIN:?UNSET_PRIVATE_HOST_JELLYFIN_ERROR}`)
+      traefik.http.routers.jellyfin.tls: true
+      traefik.http.routers.jellyfin-public.entrypoints: websecure
+      traefik.http.routers.jellyfin-public.rule: Host(`${PUBLIC_HOST_JELLYFIN:?UNSET_PUBLIC_HOST_JELLYFIN_ERROR}`)
+      traefik.http.routers.jellyfin-public.tls: true
+      traefik.http.routers.jellyfin-public.middlewares: cloudflare
+      traefik.http.services.jellyfin-torrenting.loadbalancer.server.port: 8096
+      traefik.http.middlewares.jellyfin-insecure-whitelist.ipwhitelist.sourcerange: ${JELLYFIN_INSECURE_WHITELIST:-127.0.0.1}
+    networks:
+      - default
+      - proxy
+      - ldap
+    expose:
+      - 8096
+    volumes:
+      - /mnt/raid/Media:/media
+      - jf-conf:/config
+      - jf-cache:/config/cache
+    healthcheck:
+      test: "curl -sSfLk 'http://localhost:8096/health' || exit 1"
+      interval: 30s
+      timeout: 30s
+      start_period: 10s
+      retries: 3
+    group_add: # Group add directive
+      - "107" # Add render group so that the container can use HW Acceleration
+    devices:
+      # VA-API-based Devices
+      - /dev/dri/renderD128:/dev/dri/renderD128
+      - /dev/dri/card0:/dev/dri/card0
+    ports:
+      - 1900:1900/udp
+      - 7359:7359/udp
+      
+  jellyseerr:
+    image: fallenbagel/jellyseerr:latest
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-Europe/Rome}
+    labels:
+      traefik.enable: true
+      traefik.http.routers.jellyseerr.entrypoints: websecure
+      traefik.http.routers.jellyseerr.rule: Host(`${PRIVATE_HOST_JELLYSEERR:?UNSET_PRIVATE_HOST_JELLYSEERR_ERROR}`)
+      traefik.http.routers.jellyseerr.tls: true
+      traefik.http.routers.jellyseerr-public.entrypoints: websecure
+      traefik.http.routers.jellyseerr-public.rule: Host(`${PUBLIC_HOST_JELLYSEERR:?UNSET_PUBLIC_HOST_JELLYSEERR_ERROR}`)
+      traefik.http.routers.jellyseerr-public.tls: true
+      traefik.http.routers.jellyseerr-public.middlewares: cloudflare
+    networks:
+      - default
+      - proxy
+    expose:
+      - 5055
+    volumes:
+      - jr-conf:/app/config
+
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-Europe/Rome}
+    labels:
+      traefik.enable: true
+      traefik.http.routers.radarr.entrypoints: websecure
+      traefik.http.routers.radarr.rule: Host(`${PRIVATE_HOST_RADARR:?UNSET_PRIVATE_HOST_RADARR_ERROR}`)
+      traefik.http.routers.radarr.tls: true
+    networks:
+      - default
+      - proxy
+    expose:
+      - 7878
+    volumes:
+      - /mnt/raid/Media/Movies:/movies
+      - rr-conf:/config
+      - tn-down:/downloads
+    healthcheck:
+      test: "curl -sSfLk 'http://localhost:7878/api/v3/health?apiKey=${RADARR_API_KEY:?UNSET_RADARR_API_KEY_ERROR}' || exit 1"
+      interval: 1m
+      timeout: 30s
+      start_period: 10s
+      retries: 3
+
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-Europe/Rome}
+    labels:
+      traefik.enable: true
+      traefik.http.routers.sonarr.entrypoints: websecure
+      traefik.http.routers.sonarr.rule: Host(`${PRIVATE_HOST_SONARR:?UNSET_PRIVATE_HOST_SONARR_ERROR}`)
+      traefik.http.routers.sonarr.tls: true
+    networks:
+      - default
+      - proxy
+    expose:
+      - 8989
+    volumes:
+      - /mnt/raid/Media/Shows:/shows
+      - sr-conf:/config
+      - tn-down:/downloads
+    healthcheck:
+      test: "curl -sSfLk 'http://localhost:8989/api/v3/health?apiKey=${SONARR_API_KEY:?UNSET_SONARR_API_KEY_ERROR}' || exit 1"
+      interval: 1m
+      timeout: 30s
+      start_period: 10s
+      retries: 3
+      
+#  recyclarr:
+#    image: ghcr.io/recyclarr/recyclarr
+#    restart: unless-stopped
+#    networks:
+#      - proxy
+#    volumes:
+#      - rc-conf:/config
+#    environment:
+#      TZ: ${TZ:-Europe/Rome}
+
+
+
+  transmission:
+    image: lscr.io/linuxserver/transmission:latest
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-Europe/Rome}
+    labels:
+      traefik.enable: true
+      traefik.http.routers.transmission.entrypoints: websecure
+      traefik.http.routers.transmission.rule: Host(`${PRIVATE_HOST_TRANSMISSION:?UNSET_PRIVATE_HOST_TRANSMISSION_ERROR}`)
+      traefik.http.routers.transmission.tls: true
+    networks:
+      - default
+      - proxy
+    ports:
+      - 51413:51413
+    expose:
+      - 9091
+    volumes:
+      - tn-conf:/config
+      - tn-down:/downloads
+    healthcheck:
+      test: "curl -sSfLk 'http://localhost:9091' || exit 1"
+      interval: 1m
+      timeout: 30s
+      start_period: 10s
+      retries: 3
+
+networks:
+  proxy:
+    external: true
+    name: proxy
+  ldap:
+    external: true
+    name: ldap
+    
+volumes:
+  jf-cache:
+    name: jellyfin-cache
+  jf-conf:
+    name: jellyfin-configs
+  rr-conf:
+    name: radarr-configs
+  sr-conf:
+    name: sonarr-configs
+  tn-conf:
+    name: transmission-configs
+  tn-down:
+    name: transmission-downloads
+  pl-conf:
+    name: prowlarr-configs
+  jr-conf:
+    name: jellyseerr-configs
+  rc-conf:
+    name: recyclarr-configs
