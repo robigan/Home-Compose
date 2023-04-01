@@ -1,0 +1,24 @@
+version: '3.9'
+
+services:
+  whoami:
+    # A container that exposes an API to show its IP address
+    image: traefik/whoami
+    labels:
+      traefik.enable: true # Enable this container traefik
+      traefik.http.routers.whoami.entrypoints: websecure # Add a router for whoami in my home
+      traefik.http.routers.whoami.rule: Host(`${PRIVATE_HOST:?UNSET_PRIVATE_HOST_ERROR}`) # Must match the Host defined by PRIVATE_HOST variable in the compose
+      traefik.http.routers.whoami.tls: true # Must use TLS
+      traefik.http.routers.whoami-public.entrypoints: websecure
+      traefik.http.routers.whoami-public.rule: Host(`${PUBLIC_HOST:?UNSET_PUBLIC_HOST_ERROR}`) # Same as the standard whoami router except create another router for public oriented operations
+      traefik.http.routers.whoami-public.tls: true
+      traefik.http.routers.whoami-public.middlewares: cloudflare # The public router traffic must come from Cloudflare proxies
+      traefik.http.services.whoami-whoami.loadbalancer.server.port: 80 # Specify port 80
+    networks:
+      - proxy # Attach this container to the proxy network
+    restart: unless-stopped # Restart unless the container is explicitly stopped, useful for host restarts
+      
+networks:
+  proxy: # Make the proxy network known to this compose
+    external: true # Specify that this compose cannot create it
+    name: proxy # The name of the network explicitly is proxy
