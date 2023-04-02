@@ -4,9 +4,8 @@ services:
   reverse-proxy:
     image: traefik:v2.9
     networks:
-    # - bridge # Defualt network that Traefik can use for update checking. Needs to be bridge here to access host networking
+      - default # Defualt network that Traefik can use for update checking
       - proxy # Proxy network
-    network_mode: bridge
     extra_hosts:
       - "host.docker.internal:host-gateway" # Permits accessing network resources on the host from the container
     ports:
@@ -55,8 +54,6 @@ networks:
     # NOTE: Proxy network is external. When setting it up, it should always be internal, so not routable to the internet
     external: true
     name: proxy
-  #bridge: # Default host bridge
-    #external: true
 
 volumes:
   traefik-ssl-certs: # Volume with ssl certs. This volume will require the traefik-tls.yml file found at the root of this repo to be at the root of this volume. It'll also need the certificates at the locations specified in traefik-tls.yml
