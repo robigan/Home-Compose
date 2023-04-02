@@ -12,7 +12,7 @@ services:
       traefik.http.routers.whoami-public.entrypoints: websecure
       traefik.http.routers.whoami-public.rule: Host(`${PUBLIC_HOST:?UNSET_PUBLIC_HOST_ERROR}`) # Same as the standard whoami router except create another router for public oriented operations
       traefik.http.routers.whoami-public.tls: true
-      traefik.http.routers.whoami-public.middlewares: cloudflare # The public router traffic must come from Cloudflare proxies
+      traefik.http.routers.whoami-public.middlewares: cloudflare, crowdsec # The public router traffic must come from Cloudflare proxies and crowdsec needs to be able to inspect traffic
       traefik.http.services.whoami-whoami.loadbalancer.server.port: 80 # Specify port 80
     networks:
       - proxy # Attach this container to the proxy network

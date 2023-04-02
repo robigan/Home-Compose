@@ -32,7 +32,7 @@ services:
       traefik.http.routers.jellyfin-public.entrypoints: websecure
       traefik.http.routers.jellyfin-public.rule: Host(`${PUBLIC_HOST_JELLYFIN:?UNSET_PUBLIC_HOST_JELLYFIN_ERROR}`)
       traefik.http.routers.jellyfin-public.tls: true
-      traefik.http.routers.jellyfin-public.middlewares: cloudflare
+      traefik.http.routers.jellyfin-public.middlewares: cloudflare, crowdsec
       traefik.http.services.jellyfin-torrenting.loadbalancer.server.port: 8096
       traefik.http.middlewares.jellyfin-insecure-whitelist.ipwhitelist.sourcerange: ${JELLYFIN_INSECURE_WHITELIST:-127.0.0.1}
     networks:
