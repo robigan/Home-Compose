@@ -4,8 +4,11 @@ services:
   reverse-proxy:
     image: traefik:v2.9
     networks:
-      - default # Defualt network that Traefik can use for update checking
+    # - bridge # Defualt network that Traefik can use for update checking. Needs to be bridge here to access host networking
       - proxy # Proxy network
+    network_mode: bridge
+    extra_hosts:
+      - "host.docker.internal:host-gateway" # Permits accessing network resources on the host from the container
     ports:
       - 443:443 # Websecure port
       - 80:80 # Web port
@@ -25,6 +28,8 @@ services:
       - "--log.level=${LOG_LEVEL:-ERROR}" # Log level definition, see https://doc.traefik.io/traefik/observability/logs/#level
       - "--experimental.plugins.cloudflarewarp.modulename=github.com/BetterCorp/cloudflarewarp" # Add cloudflarewarp plugin
       - "--experimental.plugins.cloudflarewarp.version=v1.3.3" # Specify version(s)
+      - "--experimental.plugins.bouncer.modulename=github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin" # Add Traefik Crowdsec Bouncer
+      - "--experimental.plugins.bouncer.version=v1.1.11"
     labels:
       # Enable traefik labels for this definition
       traefik.enable: true
@@ -35,6 +40,12 @@ services:
       traefik.http.routers.traefik.service: api@internal # Route to api service
       # Define cloudflare middleware
       traefik.http.middlewares.cloudflare.plugin.cloudflarewarp.disableDefault: false # Set the disable default to false. Creates the cloudflarewarp middleware and uses IPs listed at cloudflare.com
+      traefik.http.middlewares.crowdsec.plugin.bouncer.enable: true # Enable Crowdsec Bouncer protections
+      traefik.http.middlewares.crowdsec.plugin.bouncer.loglevel: ${LOG_LEVEL_BOUNCER:-INFO} # Crowdsec log level, possible values are INFO or DEBUG
+      traefik.http.middlewares.crowdsec.plugin.bouncer.crowdsecmode: ${CROWDSEC_MODE:-live} # The Crowdsec operational mode. Checkout the github page for more information
+      traefik.http.middlewares.crowdsec.plugin.bouncer.crowdseclapihost: ${CROWDSEC_HOST:-host.docker.internal:7070} # The Crowdsec host, this by default points to the docker host's crowdsec API (here has been customized to use port 7070)
+      traefik.http.middlewares.crowdsec.plugin.bouncer.crowdseclapikey: ${CROWDSEC_KEY:?UNSET_CROWDSEC_KEY_ERROR} # API Key for bouncer which is absolutely needed
+      traefik.http.middlewares.crowdsec.plugin.bouncer.forwardedheaderstrustedips: 173.245.48.0/20, 103.21.244.0/22, 103.22.200.0/22, 103.31.4.0/22, 141.101.64.0/18, 108.162.192.0/18, 190.93.240.0/20, 188.114.96.0/20, 197.234.240.0/22, 198.41.128.0/17, 162.158.0.0/15, 104.16.0.0/13, 104.24.0.0/14, 172.64.0.0/13, 131.0.72.0/22 # List of cloudflare IPs to trust forwarding for
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro # Mount the docker socket so that traefik can monitor it
       - traefik-ssl-certs:/ssl-certs # Trraefik SSL Certs volume
@@ -44,6 +55,8 @@ networks:
     # NOTE: Proxy network is external. When setting it up, it should always be internal, so not routable to the internet
     external: true
     name: proxy
+  #bridge: # Default host bridge
+    #external: true
 
 volumes:
   traefik-ssl-certs: # Volume with ssl certs. This volume will require the traefik-tls.yml file found at the root of this repo to be at the root of this volume. It'll also need the certificates at the locations specified in traefik-tls.yml
