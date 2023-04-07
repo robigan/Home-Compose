@@ -26,6 +26,9 @@ volumes:
     name: hass-configs
 
 networks:
+  default:
+    driver_opts:
+      com.docker.network.bridge.name: br-hass
   proxy:
     name: proxy
     external: true
