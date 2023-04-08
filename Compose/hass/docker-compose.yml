@@ -22,6 +22,7 @@ services:
       traefik.http.routers.hass-public.rule: Host(`${PUBLIC_HOST:?UNSET_PUBLIC_HOST_ERROR}`)
       traefik.http.routers.hass-public.tls: true
       traefik.http.routers.hass-public.middlewares: cloudflare, crowdsec
+      traefik.http.services.server-hass.loadbalancer.server.port: 8123 # Specify port 8123
       
 volumes:
   hs-configs:
