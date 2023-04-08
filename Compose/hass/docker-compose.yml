@@ -11,6 +11,8 @@ services:
       - proxy
     expose:
       - 8123
+    ports:
+      - 1400:1400/tcp
     labels:
       traefik.enable: true
       traefik.http.routers.hass.entrypoints: websecure
