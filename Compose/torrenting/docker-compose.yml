@@ -83,12 +83,12 @@ services:
       - 5055
     volumes:
       - jr-conf:/app/config
-    healthcheck:
-      test: "curl --silent --show-error --fail-with-body 'http://localhost:5055/api/v1/status' || exit 1"
-      interval: 1m
-      timeout: 30s
-      start_period: 10s
-      retries: 3
+    # healthcheck:
+    #   test: "curl --silent --show-error --fail-with-body 'http://localhost:5055/api/v1/status' || exit 1"
+    #   interval: 1m
+    #   timeout: 30s
+    #   start_period: 10s
+    #   retries: 3
 
   radarr:
     image: lscr.io/linuxserver/radarr:latest
