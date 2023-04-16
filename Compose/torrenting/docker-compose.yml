@@ -46,8 +46,9 @@ services:
       - jf-conf:/config
       - jf-cache:/config/cache
     healthcheck:
-      test: "curl -sSfLk 'http://localhost:8096/health' || exit 1"
-      interval: 30s
+      test: "curl --silent --show-error --fail-with-body 'http://localhost:8096/health' || exit 1"
+      # Curl command explained: --silent (Do not output progress meter), --show-error (If an error is returned, the error is printed), --fail-with-body (If the server returns 4xx or 5xx codes, then the body is printed). Must exit with 1 cus Docker only accepts that error code
+      interval: 1m
       timeout: 30s
       start_period: 10s
       retries: 3
@@ -82,6 +83,12 @@ services:
       - 5055
     volumes:
       - jr-conf:/app/config
+    healthcheck:
+      test: "curl --silent --show-error --fail-with-body 'http://localhost:5055/api/v1/status' || exit 1"
+      interval: 1m
+      timeout: 30s
+      start_period: 10s
+      retries: 3
 
   radarr:
     image: lscr.io/linuxserver/radarr:latest
@@ -103,7 +110,7 @@ services:
       - rr-conf:/config
       - tn-down:/downloads
     healthcheck:
-      test: "curl -sSfLk 'http://localhost:7878/api/v3/health?apiKey=${RADARR_API_KEY:?UNSET_RADARR_API_KEY_ERROR}' || exit 1"
+      test: "curl --silent --show-error --fail-with-body 'http://localhost:7878/api/v3/health?apiKey=${RADARR_API_KEY:?UNSET_RADARR_API_KEY_ERROR}' || exit 1"
       interval: 1m
       timeout: 30s
       start_period: 10s
@@ -129,7 +136,7 @@ services:
       - sr-conf:/config
       - tn-down:/downloads
     healthcheck:
-      test: "curl -sSfLk 'http://localhost:8989/api/v3/health?apiKey=${SONARR_API_KEY:?UNSET_SONARR_API_KEY_ERROR}' || exit 1"
+      test: "curl --silent --show-error --fail-with-body 'http://localhost:8989/api/v3/health?apiKey=${SONARR_API_KEY:?UNSET_SONARR_API_KEY_ERROR}' || exit 1"
       interval: 1m
       timeout: 30s
       start_period: 10s
@@ -166,12 +173,12 @@ services:
     volumes:
       - tn-conf:/config
       - tn-down:/downloads
-    healthcheck:
-      test: "curl -sSfLk 'http://localhost:9091' || exit 1"
-      interval: 1m
-      timeout: 30s
-      start_period: 10s
-      retries: 3
+    # healthcheck: # A more properly implemented implementation would check for errored torrents
+    #   test: "curl --silent --show-error --fail-with-body 'http://localhost:9091' || exit 1"
+    #   interval: 1m
+    #   timeout: 30s
+    #   start_period: 10s
+    #   retries: 3
 
 networks:
   proxy:
