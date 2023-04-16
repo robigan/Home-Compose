@@ -135,17 +135,16 @@ services:
       start_period: 10s
       retries: 3
       
-#  recyclarr:
-#    image: ghcr.io/recyclarr/recyclarr
-#    restart: unless-stopped
-#    networks:
-#      - proxy
-#    volumes:
-#      - rc-conf:/config
-#    environment:
-#      TZ: ${TZ:-Europe/Rome}
-
-
+  recyclarr:
+    image: ghcr.io/recyclarr/recyclarr
+    restart: unless-stopped
+    networks:
+      - default
+      - proxy
+    volumes:
+      - rc-conf:/config
+    environment:
+      TZ: ${TZ:-Europe/Rome}
 
   transmission:
     image: lscr.io/linuxserver/transmission:latest
