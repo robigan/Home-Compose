@@ -152,6 +152,8 @@ services:
       - rc-conf:/config
     environment:
       TZ: ${TZ:-Europe/Rome}
+      SONARR_API_KEY: ${SONARR_API_KEY:-0}
+      RADARR_API_KEY: ${RADARR_API_KEY:-0}
 
   transmission:
     image: lscr.io/linuxserver/transmission:latest
