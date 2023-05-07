@@ -109,7 +109,7 @@ services:
       - /mnt/raid/Media/Movies:/movies
       - rr-conf:/config
       - tn-down:/downloads
-      - sftp-seedbox:/seedbox
+      - /mnt/seedbox/torrents/qbittorrent:/seedbox
     healthcheck:
       test: "curl --silent --show-error --fail-with-body 'http://localhost:7878/api/v3/health?apiKey=${RADARR_API_KEY:?UNSET_RADARR_API_KEY_ERROR}' || exit 1"
       interval: 1m
@@ -136,7 +136,7 @@ services:
       - /mnt/raid/Media/Shows:/shows
       - sr-conf:/config
       - tn-down:/downloads
-      - sftp-seedbox:/seedbox
+      - /mnt/seedbox/torrents/qbittorrent:/seedbox
     healthcheck:
       test: "curl --silent --show-error --fail-with-body 'http://localhost:8989/api/v3/health?apiKey=${SONARR_API_KEY:?UNSET_SONARR_API_KEY_ERROR}' || exit 1"
       interval: 1m
@@ -211,9 +211,9 @@ volumes:
     name: jellyseerr-configs
   rc-conf:
     name: recyclarr-configs
-  sftp-seedbox:
-    driver: vieux/sshfs:latest
-    driver_opts:
-      sshcmd: ${SEEDBOX_USER:?UNSET_SEEDBOX_USER_ERROR}:${SEEDBOX_PASSWORD:?UNSET_SEEDBOX_PASSWORD_ERROR}@${SEEDBOX_HOST:?UNSET_SEEDBOX_HOST_ERROR}:${SEEDBOX_PATH:?UNSET_SEEDBOX_PATH_ERROR}
-      # IdentityFile: "/root/.ssh/your-key-file"
-      # allow_other: ""
+  # sftp-seedbox:
+    # driver: vieux/sshfs:latest
+    # driver_opts:
+    #   sshcmd: ${SEEDBOX_USER:?UNSET_SEEDBOX_USER_ERROR}:${SEEDBOX_PASSWORD:?UNSET_SEEDBOX_PASSWORD_ERROR}@${SEEDBOX_HOST:?UNSET_SEEDBOX_HOST_ERROR}:${SEEDBOX_PATH:?UNSET_SEEDBOX_PATH_ERROR}
+    #   # IdentityFile: "/root/.ssh/your-key-file"
+    #   # allow_other: ""
