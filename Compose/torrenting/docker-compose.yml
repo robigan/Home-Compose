@@ -109,7 +109,7 @@ services:
       - /mnt/raid/Media/Movies:/movies
       - rr-conf:/config
       - tn-down:/downloads
-      - /mnt/seedbox/torrents/qbittorrent:/seedbox
+      - /mnt/seedbox/rar2fsmount/torrents/qbittorrent:/seedbox
     healthcheck:
       test: "curl --silent --show-error --fail-with-body 'http://localhost:7878/api/v3/health?apiKey=${RADARR_API_KEY:?UNSET_RADARR_API_KEY_ERROR}' || exit 1"
       interval: 1m
@@ -136,7 +136,7 @@ services:
       - /mnt/raid/Media/Shows:/shows
       - sr-conf:/config
       - tn-down:/downloads
-      - /mnt/seedbox/torrents/qbittorrent:/seedbox
+      - /mnt/seedbox/rar2fsmount/torrents/qbittorrent:/seedbox
     healthcheck:
       test: "curl --silent --show-error --fail-with-body 'http://localhost:8989/api/v3/health?apiKey=${SONARR_API_KEY:?UNSET_SONARR_API_KEY_ERROR}' || exit 1"
       interval: 1m
