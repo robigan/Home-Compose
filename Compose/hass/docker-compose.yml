@@ -28,8 +28,7 @@ services:
     image: monstrenyatko/mdns-repeater:latest
     network_mode: host
     restart: unless-stopped
-    environment:
-      MDNS_REPEATER_INTERFACES: ${HOST_INTERFACES} br-hass
+    command: mdns-repeater-app -f ${HOST_INTERFACES} br-hass
       
 volumes:
   hs-configs:
