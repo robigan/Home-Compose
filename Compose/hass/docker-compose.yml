@@ -23,6 +23,13 @@ services:
       traefik.http.routers.hass-public.tls: true
       traefik.http.routers.hass-public.middlewares: cloudflare, crowdsec
       traefik.http.services.server-hass.loadbalancer.server.port: 8123 # Specify port 8123
+  
+  repeater:
+    image: monstrenyatko/mdns-repeater:latest
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      MDNS_REPEATER_INTERFACES: ${HOST_INTERFACES} br-hass
       
 volumes:
   hs-configs:
