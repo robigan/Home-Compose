@@ -184,6 +184,20 @@ services:
     #   start_period: 10s
     #   retries: 3
 
+  flaresolverr:
+    image: flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    environment:
+      LOG_LEVEL: ${FLARESOLVERR_LOG_LEVEL:-info}
+      LOG_HTML: ${FLARESOLVERR_LOG_HTML:-false}
+      CAPTCHA_SOLVER: ${FLARESOLVERR_CAPTCHA_SOLVER:-none}
+      TZ: ${TZ:-Europe/Rome}
+    expose:
+      - 8191
+    restart: unless-stopped
+    networks:
+      - default
+
 networks:
   proxy:
     external: true
