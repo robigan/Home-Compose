@@ -101,6 +101,7 @@ services:
       traefik.http.routers.radarr.entrypoints: websecure
       traefik.http.routers.radarr.rule: Host(`${PRIVATE_HOST_RADARR:?UNSET_PRIVATE_HOST_RADARR_ERROR}`)
       traefik.http.routers.radarr.tls: true
+      traefik.http.routers.radarr.tls.certresolver: cfresolver
     networks:
       - default
       - proxy
@@ -128,6 +129,7 @@ services:
       traefik.http.routers.sonarr.entrypoints: websecure
       traefik.http.routers.sonarr.rule: Host(`${PRIVATE_HOST_SONARR:?UNSET_PRIVATE_HOST_SONARR_ERROR}`)
       traefik.http.routers.sonarr.tls: true
+      traefik.http.routers.sonarr.tls.certresolver: cfresolver
     networks:
       - default
       - proxy
@@ -168,6 +170,7 @@ services:
       traefik.http.routers.transmission.entrypoints: websecure
       traefik.http.routers.transmission.rule: Host(`${PRIVATE_HOST_TRANSMISSION:?UNSET_PRIVATE_HOST_TRANSMISSION_ERROR}`)
       traefik.http.routers.transmission.tls: true
+      traefik.http.routers.transmission.tls.certresolver: cfresolver
     networks:
       - default
       - proxy
