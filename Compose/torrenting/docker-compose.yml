@@ -110,7 +110,7 @@ services:
       - /mnt/raid/Media/Movies:/movies
       - rr-conf:/config
       - tn-down:/downloads
-      - /mnt/seedbox/torrents/qbittorrent:/seedbox
+      - remote-box:/seedbox
     healthcheck:
       test: "curl --silent --show-error --fail-with-body 'http://localhost:7878/api/v3/health?apiKey=${RADARR_API_KEY:?UNSET_RADARR_API_KEY_ERROR}' || exit 1"
       interval: 1m
@@ -137,7 +137,7 @@ services:
       - /mnt/raid/Media/Shows:/shows
       - sr-conf:/config
       - tn-down:/downloads
-      - /mnt/seedbox/torrents/qbittorrent:/seedbox
+      - remote-box:/seedbox
     healthcheck:
       test: "curl --silent --show-error --fail-with-body 'http://localhost:8989/api/v3/health?apiKey=${SONARR_API_KEY:?UNSET_SONARR_API_KEY_ERROR}' || exit 1"
       interval: 1m
@@ -225,3 +225,13 @@ volumes:
     name: jellyseerr-configs
   rc-conf:
     name: recyclarr-configs
+  remote-box:
+    driver: rclone
+    driver_opts:
+      type: sftp
+      path: ${SFTP_REMOTE_PATH:-torrents/qbittorrent}
+      sftp-host: ${SFTP_HOST:?UNSET_SFTP_HOST_ERROR}
+      sftp-user: ${SFTP_USER:-seedit4me}
+      allow-other: "true"
+      sftp-port: ${SFTP_PORT:-22}
+      sftp-key-file: ${SFTP_KEY_FILE}
