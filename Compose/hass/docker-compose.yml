@@ -18,9 +18,11 @@ services:
       traefik.http.routers.hass.entrypoints: websecure
       traefik.http.routers.hass.rule: Host(`${PRIVATE_HOST:?UNSET_PRIVATE_HOST_ERROR}`)
       traefik.http.routers.hass.tls: true
+      traefik.http.routers.hass.tls.certresolver: cfresolver
       traefik.http.routers.hass-public.entrypoints: websecure
       traefik.http.routers.hass-public.rule: Host(`${PUBLIC_HOST:?UNSET_PUBLIC_HOST_ERROR}`)
       traefik.http.routers.hass-public.tls: true
+      traefik.http.routers.hass-public.tls.certresolver: cfresolver
       traefik.http.routers.hass-public.middlewares: cloudflare, crowdsec
       traefik.http.services.server-hass.loadbalancer.server.port: 8123 # Specify port 8123
   

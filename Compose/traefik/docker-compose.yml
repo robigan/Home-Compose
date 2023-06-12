@@ -20,7 +20,6 @@ services:
       - "--providers.docker=true" # Enable docker provider
       - "--providers.docker.exposedbydefault=false" # Disable exposing services by default
       - "--providers.docker.network=proxy" # Set the default docker network to proxy
-      # - "--providers.file.filename=/ssl-certs/traefik-tls.yml" # Define dynamic configuration for TLS
       - "--accesslog=${ACCESS_LOG:-false}" # Access log definition, values are 'true' or 'false' 
       - "--log.level=${LOG_LEVEL:-ERROR}" # Log level definition, see https://doc.traefik.io/traefik/observability/logs/#level
       - "--experimental.plugins.cloudflarewarp.modulename=github.com/BetterCorp/cloudflarewarp" # Add cloudflarewarp plugin
@@ -37,7 +36,7 @@ services:
       traefik.http.routers.traefik.entrypoints: websecure # Setup an http router to the dashboard
       traefik.http.routers.traefik.rule: Host(`${PRIVATE_HOST:?UNSET_PRIVATE_HOST_ERROR}`) # Use this host
       traefik.http.routers.traefik.tls: true # Enable TLS for this router
-      traefik.http.routers.traefik.tls.certresolver: cfresolver
+      traefik.http.routers.traefik.tls.certresolver: cfresolver # Use the Let's Encrypt Cert
       traefik.http.routers.traefik.service: api@internal # Route to api service
       # Define cloudflare middleware
       traefik.http.middlewares.cloudflare.plugin.cloudflarewarp.disableDefault: false # Set the disable default to false. Creates the cloudflarewarp middleware and uses IPs listed at cloudflare.com
@@ -46,7 +45,6 @@ services:
       traefik.http.middlewares.crowdsec.forwardauth.trustForwardHeader: true # Should be disabled but it isn't picking up trusted headers from cloudflare, therefore it sends the internal IP for querying instead
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro # Mount the docker socket so that traefik can monitor it
-      # - traefik-ssl-certs:/ssl-certs # Trraefik SSL Certs volume
       - acme:/acme # Directory for auto generated certificates
     environment:
       CF_DNS_API_TOKEN: ${CF_DNS_TOKEN:?UNSET_CF_DNS_TOKEN_ERROR}
@@ -73,5 +71,4 @@ networks:
     name: proxy
 
 volumes:
-  # traefik-ssl-certs: # Volume with ssl certs. This volume will require the traefik-tls.yml file found at the root of this repo to be at the root of this volume. It'll also need the certificates at the locations specified in traefik-tls.yml
   acme: # Volume to store automatically generated certificates
