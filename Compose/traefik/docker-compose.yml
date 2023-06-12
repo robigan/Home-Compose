@@ -39,6 +39,7 @@ services:
       traefik.http.middlewares.cloudflare.plugin.cloudflarewarp.disableDefault: false # Set the disable default to false. Creates the cloudflarewarp middleware and uses IPs listed at cloudflare.com
       # Define crowdsec bouncer middleware
       traefik.http.middlewares.crowdsec.forwardauth.address: http://bouncer:8080/api/v1/forwardAuth
+      traefik.http.middlewares.crowdsec.forwardauth.trustForwardHeader: true # Should be disabled but it isn't picking up trusted headers from cloudflare, therefore it sends the internal IP for querying instead
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro # Mount the docker socket so that traefik can monitor it
       - traefik-ssl-certs:/ssl-certs # Trraefik SSL Certs volume
@@ -53,7 +54,8 @@ services:
       TRUSTED_PROXIES: 173.245.48.0/20,103.21.244.0/22,103.22.200.0/22,103.31.4.0/22,141.101.64.0/18,108.162.192.0/18,190.93.240.0/20,188.114.96.0/20,197.234.240.0/22,198.41.128.0/17,162.158.0.0/15,104.16.0.0/13,104.24.0.0/14,172.64.0.0/13,131.0.72.0/22 # List of cloudflare IPs to trust forwarding for
     networks:
       - default # Defualt network that we can use to communicate with Traefik
-      - proxy # Proxy network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     expose:
       - 8080
 
