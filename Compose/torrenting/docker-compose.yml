@@ -234,4 +234,5 @@ volumes:
       sftp-user: ${SFTP_USER:-seedit4me}
       allow-other: "true"
       sftp-port: ${SFTP_PORT:-22}
-      sftp-key-file: ${SFTP_KEY_FILE}
+      sftp-pass: ${SFTP_PASS}
+      # sftp-key-file: ${SFTP_KEY_FILE}
