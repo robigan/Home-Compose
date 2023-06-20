@@ -20,11 +20,13 @@ services:
       traefik.http.routers.i2p-dashboard.entrypoints: websecure
       traefik.http.routers.i2p-dashboard.rule: Host(`${PRIVATE_HOST_DASHBOARD:?UNSET_PRIVATE_HOST_DASHBOARD_ERROR}`)
       traefik.http.routers.i2p-dashboard.tls: true
+      traefik.http.routers.i2p-dashboard.tls.certresolver: cfresolver
       traefik.http.routers.i2p-dashboard.service: proxy-i2p-dashboard
       traefik.http.services.proxy-i2p-dashboard.loadbalancer.server.port: 7070
       traefik.http.routers.i2p.entrypoints: websecure
       traefik.http.routers.i2p.rule: Host(`${PRIVATE_HOST:?UNSET_PRIVATE_HOST_ERROR}`)
       traefik.http.routers.i2p.tls: true
+      traefik.http.routers.i2p.tls.certresolver: cfresolver
       traefik.http.routers.i2p.service: proxy-i2p
       traefik.http.services.proxy-i2p.loadbalancer.server.port: 4444
 

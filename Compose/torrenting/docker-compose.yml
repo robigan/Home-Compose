@@ -12,6 +12,7 @@ services:
       traefik.http.routers.prowlarr.entrypoints: websecure
       traefik.http.routers.prowlarr.rule: Host(`${PRIVATE_HOST_PROWLARR:?UNSET_PRIVATE_HOST_PROWLARR_ERROR}`)
       traefik.http.routers.prowlarr.tls: true
+      traefik.http.routers.prowlarr.tls.certresolver: cfresolver
     networks:
       - default
       - proxy
@@ -23,18 +24,16 @@ services:
       TZ: ${TZ:-Europe/Rome}
     labels:
       traefik.enable: true
-      traefik.http.routers.jellyfin-insecure.entrypoints: web
-      traefik.http.routers.jellyfin-insecure.rule: Host(`${PRIVATE_HOST_JELLYFIN:?UNSET_PRIVATE_HOST_JELLYFIN_ERROR}`)
-      traefik.http.routers.jellyfin-insecure.middlewares: jellyfin-insecure-whitelist
       traefik.http.routers.jellyfin.entrypoints: websecure
       traefik.http.routers.jellyfin.rule: Host(`${PRIVATE_HOST_JELLYFIN:?UNSET_PRIVATE_HOST_JELLYFIN_ERROR}`)
       traefik.http.routers.jellyfin.tls: true
+      traefik.http.routers.jellyfin.tls.certresolver: cfresolver
       traefik.http.routers.jellyfin-public.entrypoints: websecure
       traefik.http.routers.jellyfin-public.rule: Host(`${PUBLIC_HOST_JELLYFIN:?UNSET_PUBLIC_HOST_JELLYFIN_ERROR}`)
       traefik.http.routers.jellyfin-public.tls: true
+      traefik.http.routers.jellyfin-public.tls.certresolver: cfresolver
       traefik.http.routers.jellyfin-public.middlewares: cloudflare, crowdsec
       traefik.http.services.jellyfin-torrenting.loadbalancer.server.port: 8096
-      traefik.http.middlewares.jellyfin-insecure-whitelist.ipwhitelist.sourcerange: ${JELLYFIN_INSECURE_WHITELIST:-127.0.0.1}
     networks:
       - default
       - proxy
@@ -72,9 +71,11 @@ services:
       traefik.http.routers.jellyseerr.entrypoints: websecure
       traefik.http.routers.jellyseerr.rule: Host(`${PRIVATE_HOST_JELLYSEERR:?UNSET_PRIVATE_HOST_JELLYSEERR_ERROR}`)
       traefik.http.routers.jellyseerr.tls: true
+      traefik.http.routers.jellyseerr.tls.certresolver: cfresolver
       traefik.http.routers.jellyseerr-public.entrypoints: websecure
       traefik.http.routers.jellyseerr-public.rule: Host(`${PUBLIC_HOST_JELLYSEERR:?UNSET_PUBLIC_HOST_JELLYSEERR_ERROR}`)
       traefik.http.routers.jellyseerr-public.tls: true
+      traefik.http.routers.jellyseerr-public.tls.certresolver: cfresolver
       traefik.http.routers.jellyseerr-public.middlewares: cloudflare
     networks:
       - default
@@ -100,6 +101,7 @@ services:
       traefik.http.routers.radarr.entrypoints: websecure
       traefik.http.routers.radarr.rule: Host(`${PRIVATE_HOST_RADARR:?UNSET_PRIVATE_HOST_RADARR_ERROR}`)
       traefik.http.routers.radarr.tls: true
+      traefik.http.routers.radarr.tls.certresolver: cfresolver
     networks:
       - default
       - proxy
@@ -109,7 +111,7 @@ services:
       - /mnt/raid/Media/Movies:/movies
       - rr-conf:/config
       - tn-down:/downloads
-      - /mnt/seedbox/torrents/qbittorrent:/seedbox
+      - remote-box:/seedbox
     healthcheck:
       test: "curl --silent --show-error --fail-with-body 'http://localhost:7878/api/v3/health?apiKey=${RADARR_API_KEY:?UNSET_RADARR_API_KEY_ERROR}' || exit 1"
       interval: 1m
@@ -127,6 +129,7 @@ services:
       traefik.http.routers.sonarr.entrypoints: websecure
       traefik.http.routers.sonarr.rule: Host(`${PRIVATE_HOST_SONARR:?UNSET_PRIVATE_HOST_SONARR_ERROR}`)
       traefik.http.routers.sonarr.tls: true
+      traefik.http.routers.sonarr.tls.certresolver: cfresolver
     networks:
       - default
       - proxy
@@ -136,7 +139,7 @@ services:
       - /mnt/raid/Media/Shows:/shows
       - sr-conf:/config
       - tn-down:/downloads
-      - /mnt/seedbox/torrents/qbittorrent:/seedbox
+      - remote-box:/seedbox
     healthcheck:
       test: "curl --silent --show-error --fail-with-body 'http://localhost:8989/api/v3/health?apiKey=${SONARR_API_KEY:?UNSET_SONARR_API_KEY_ERROR}' || exit 1"
       interval: 1m
@@ -167,6 +170,7 @@ services:
       traefik.http.routers.transmission.entrypoints: websecure
       traefik.http.routers.transmission.rule: Host(`${PRIVATE_HOST_TRANSMISSION:?UNSET_PRIVATE_HOST_TRANSMISSION_ERROR}`)
       traefik.http.routers.transmission.tls: true
+      traefik.http.routers.transmission.tls.certresolver: cfresolver
     networks:
       - default
       - proxy
@@ -183,6 +187,19 @@ services:
     #   timeout: 30s
     #   start_period: 10s
     #   retries: 3
+
+  flaresolverr:
+    image: flaresolverr/flaresolverr:latest
+    environment:
+      LOG_LEVEL: ${FLARESOLVERR_LOG_LEVEL:-info}
+      LOG_HTML: ${FLARESOLVERR_LOG_HTML:-false}
+      CAPTCHA_SOLVER: ${FLARESOLVERR_CAPTCHA_SOLVER:-none}
+      TZ: ${TZ:-Europe/Rome}
+    expose:
+      - 8191
+    restart: unless-stopped
+    networks:
+      - default
 
 networks:
   proxy:
@@ -211,9 +228,14 @@ volumes:
     name: jellyseerr-configs
   rc-conf:
     name: recyclarr-configs
-  # sftp-seedbox:
-    # driver: vieux/sshfs:latest
-    # driver_opts:
-    #   sshcmd: ${SEEDBOX_USER:?UNSET_SEEDBOX_USER_ERROR}:${SEEDBOX_PASSWORD:?UNSET_SEEDBOX_PASSWORD_ERROR}@${SEEDBOX_HOST:?UNSET_SEEDBOX_HOST_ERROR}:${SEEDBOX_PATH:?UNSET_SEEDBOX_PATH_ERROR}
-    #   # IdentityFile: "/root/.ssh/your-key-file"
-    #   # allow_other: ""
+  remote-box:
+    driver: rclone
+    driver_opts:
+      type: sftp
+      path: ${SFTP_REMOTE_PATH:-torrents/qbittorrent}
+      sftp-host: ${SFTP_HOST:?UNSET_SFTP_HOST_ERROR}
+      sftp-user: ${SFTP_USER:-seedit4me}
+      allow-other: "true"
+      sftp-port: ${SFTP_PORT:-22}
+      sftp-pass: ${SFTP_PASS}
+      # sftp-key-file: ${SFTP_KEY_FILE}
