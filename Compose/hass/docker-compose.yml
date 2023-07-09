@@ -15,7 +15,6 @@ services:
       - 1400:1400/tcp # Spotify
       # - 8123:8123/tcp # Web UI
       - 21063:21063/tcp # Homekit
-      - 5353:5353/udp # Homekit
     labels:
       traefik.enable: true
       traefik.http.routers.hass.entrypoints: websecure
