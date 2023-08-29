@@ -12,7 +12,7 @@ services:
     expose:
       - 8123
     ports:
-      - 1400:1400/tcp # Spotify
+      - 1400:1400/tcp # Sonos
       # - 8123:8123/tcp # Web UI
       - 21063:21063/tcp # Homekit
     labels:
