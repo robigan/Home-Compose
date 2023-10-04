@@ -1,0 +1,103 @@
+// Read Grafana Cloud credentials
+local.file "secrets" {
+  filename = "/etc/grafana-agent-flow/secrets.json"
+  // is_secret = true // Until further support is added for processing secret files, this will be commented out
+}
+
+// Discover docker containers
+discovery.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+}
+
+loki.source.docker "docker_logs" {
+  host = "unix:///var/run/docker.sock"
+  targets = discovery.docker.containers.targets
+  forward_to = [loki.relabel.docker_logs.receiver]
+}
+
+// Relabel and send docker logs
+loki.relabel "docker_logs" {
+  rule {
+    source_labels = ["job"]
+    target_label = "job"
+    replacement = "docker_logs"
+  }
+
+  rule {
+    source_labels = ["__address__"]
+    target_label = "instance"
+    replacement = env("HOSTNAME")
+  }
+
+  forward_to = [loki.write.cloud.receiver]
+}
+
+// loki.source.journal "journal" {
+//   forward_to = [loki.relabel.systemd_logs.receiver]
+// }
+
+// // Relabel and send systemd logs
+// loki.relabel "systemd_logs" {
+//   rule {
+//     source_labels = ["job"]
+//     target_label = "job"
+//     replacement = "systemd_logs"
+//   }
+
+//   rule {
+//     source_labels = ["__address__"]
+//     target_label = "instance"
+//     replacement = env("HOSTNAME")
+//   }
+
+//   forward_to = [loki.write.cloud.receiver]
+// }
+
+prometheus.exporter.unix { }
+
+// Configure a prometheus.scrape component to collect unix metrics.
+prometheus.scrape "unix_metrics" {
+  targets    = prometheus.exporter.unix.targets
+  forward_to = [prometheus.relabel.unix_metrics.receiver]
+}
+
+// Relabel and send host metrics
+prometheus.relabel "unix_metrics" {
+  rule {
+    source_labels = ["job"]
+    target_label = "job"
+    replacement = "unix_exporter"
+  }
+
+  rule {
+    source_labels = ["__address__"]
+    target_label = "instance"
+    replacement = env("HOSTNAME")
+  }
+
+  forward_to = [prometheus.remote_write.cloud.receiver]
+}
+
+// Send logs to Grafana Cloud
+loki.write "cloud" {
+  endpoint {
+    url = json_decode(local.file.secrets.content).loki_url
+
+    basic_auth {
+      username = json_decode(local.file.secrets.content).loki_username
+      password = json_decode(local.file.secrets.content).loki_api_key
+    }
+  }
+}
+
+// Send metrics to Grafana Cloud
+prometheus.remote_write "cloud" {
+  endpoint {
+    url = json_decode(local.file.secrets.content).prometheus_url
+
+    basic_auth {
+      username = json_decode(local.file.secrets.content).prometheus_username
+      password = json_decode(local.file.secrets.content).prometheus_api_key
+    }
+  }
+}
