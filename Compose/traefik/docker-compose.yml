@@ -15,6 +15,9 @@ services:
       - "--entrypoints.web.address=:80" # Provide an entrypoint for HTTP traffic
       # Doesn't redirect by default to HTTPS scheme for services that legitimately need HTTP
       - "--entrypoints.websecure.address=:443" # Provide a secure entrypoint for HTTPS traffic
+      - "--entrypoints.web.http.redirections.entryPoint.to=websecure" # Always redirect the web entrypoint to websecure entrypoint
+      - "--entrypoints.web.http.redirections.entryPoint.scheme=https" # Upgrade the scheme to https
+      - "--entrypoints.web.http.redirections.entrypoint.permanent=true" # Use a permanent redirect
       - "--api.insecure=false" # Disable insecure API
       - "--api.dashboard=true" # But do enable the dashboard
       - "--providers.docker=true" # Enable docker provider
