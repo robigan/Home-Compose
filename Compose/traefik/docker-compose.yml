@@ -54,6 +54,7 @@ services:
 
   bouncer:
     image: fbonalair/traefik-crowdsec-bouncer:latest
+    restart: unless-stopped
     environment:
       CROWDSEC_BOUNCER_API_KEY: ${CROWDSEC_KEY:-0}
       CROWDSEC_AGENT_HOST: ${CROWDSEC_HOST:-host.docker.internal:7070}
