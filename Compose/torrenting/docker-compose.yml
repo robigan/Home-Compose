@@ -165,6 +165,8 @@ services:
     restart: unless-stopped
     environment:
       TZ: ${TZ:-Europe/Rome}
+      USER: ${TRANSMISSION_USER:-transmission}
+      PASS: ${TRANSMISSION_PASS:-transmission}
     labels:
       traefik.enable: true
       traefik.http.routers.transmission.entrypoints: websecure
