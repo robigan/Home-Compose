@@ -53,11 +53,11 @@ local.file "secrets" {
 //   forward_to = [loki.write.cloud.receiver]
 // }
 
-prometheus.exporter.unix { }
+prometheus.exporter.unix "unix_metrics" { }
 
 // Configure a prometheus.scrape component to collect unix metrics.
 prometheus.scrape "unix_metrics" {
-  targets    = prometheus.exporter.unix.targets
+  targets    = prometheus.exporter.unix.unix_metrics.targets
   forward_to = [prometheus.relabel.unix_metrics.receiver]
 }
 
