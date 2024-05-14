@@ -22,6 +22,7 @@ services:
     restart: unless-stopped
     environment:
       TZ: ${TZ:-Europe/Rome}
+      PGID: ${MEDIA_GID:-120} # Access to the host media group
     labels:
       traefik.enable: true
       traefik.http.routers.jellyfin.entrypoints: websecure
@@ -41,7 +42,7 @@ services:
     expose:
       - 8096
     volumes:
-      - /mnt/raid/Media:/media
+      - ${MEDIA_DIR:-/mnt/raid/Media}:/media
       - jf-conf:/config
       - jf-cache:/config/cache
     healthcheck:
@@ -96,6 +97,7 @@ services:
     restart: unless-stopped
     environment:
       TZ: ${TZ:-Europe/Rome}
+      PGID: ${MEDIA_GID:-120} # Access to the host media group
     labels:
       traefik.enable: true
       traefik.http.routers.radarr.entrypoints: websecure
@@ -108,7 +110,7 @@ services:
     expose:
       - 7878
     volumes:
-      - /mnt/raid/Media/Movies:/movies
+      - ${MEDIA_DIR:-/mnt/raid/Media}/Movies:/movies
       - rr-conf:/config
       - tn-down:/downloads
       # - remote-box:/seedbox
@@ -124,6 +126,7 @@ services:
     restart: unless-stopped
     environment:
       TZ: ${TZ:-Europe/Rome}
+      PGID: ${MEDIA_GID:-120} # Access to the host media group
     labels:
       traefik.enable: true
       traefik.http.routers.sonarr.entrypoints: websecure
@@ -136,7 +139,7 @@ services:
     expose:
       - 8989
     volumes:
-      - /mnt/raid/Media/Shows:/shows
+      - ${MEDIA_DIR:-/mnt/raid/Media}/Shows:/shows
       - sr-conf:/config
       - tn-down:/downloads
       # - remote-box:/seedbox
