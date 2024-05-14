@@ -25,15 +25,16 @@ services:
       PGID: ${MEDIA_GID:-120} # Access to the host media group
     labels:
       traefik.enable: true
+      traefik.http.routers.jellyfin-private.entrypoints: websecure
+      traefik.http.routers.jellyfin-private.rule: Host(`${PRIVATE_HOST_JELLYFIN:?UNSET_PRIVATE_HOST_JELLYFIN_ERROR}`)
+      traefik.http.routers.jellyfin-private.tls: true
+      traefik.http.routers.jellyfin-private.tls.certresolver: cfresolver
+      traefik.http.routers.jellyfin-private.middlewares: private-to-public-redirect
       traefik.http.routers.jellyfin.entrypoints: websecure
-      traefik.http.routers.jellyfin.rule: Host(`${PRIVATE_HOST_JELLYFIN:?UNSET_PRIVATE_HOST_JELLYFIN_ERROR}`)
+      traefik.http.routers.jellyfin.rule: Host(`${PUBLIC_HOST_JELLYFIN:?UNSET_PUBLIC_HOST_JELLYFIN_ERROR}`)
       traefik.http.routers.jellyfin.tls: true
       traefik.http.routers.jellyfin.tls.certresolver: cfresolver
-      traefik.http.routers.jellyfin-public.entrypoints: websecure
-      traefik.http.routers.jellyfin-public.rule: Host(`${PUBLIC_HOST_JELLYFIN:?UNSET_PUBLIC_HOST_JELLYFIN_ERROR}`)
-      traefik.http.routers.jellyfin-public.tls: true
-      traefik.http.routers.jellyfin-public.tls.certresolver: cfresolver
-      traefik.http.routers.jellyfin-public.middlewares: cloudflare, crowdsec
+      traefik.http.routers.jellyfin.middlewares: cloudflare, crowdsec
       traefik.http.services.jellyfin-torrenting.loadbalancer.server.port: 8096
     networks:
       - default
