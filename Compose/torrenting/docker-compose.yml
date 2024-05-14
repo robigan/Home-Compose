@@ -30,6 +30,7 @@ services:
       traefik.http.routers.jellyfin-private.tls: true
       traefik.http.routers.jellyfin-private.tls.certresolver: cfresolver
       traefik.http.routers.jellyfin-private.middlewares: private-to-public-redirect
+      traefik.http.routers.jellyfin-private.service: noop@internal
       traefik.http.routers.jellyfin.entrypoints: websecure
       traefik.http.routers.jellyfin.rule: Host(`${PUBLIC_HOST_JELLYFIN:?UNSET_PUBLIC_HOST_JELLYFIN_ERROR}`)
       traefik.http.routers.jellyfin.tls: true
@@ -70,15 +71,17 @@ services:
       TZ: ${TZ:-Europe/Rome}
     labels:
       traefik.enable: true
+      traefik.http.routers.jellyseerr-private.entrypoints: websecure
+      traefik.http.routers.jellyseerr-private.rule: Host(`${PRIVATE_HOST_JELLYSEERR:?UNSET_PRIVATE_HOST_JELLYSEERR_ERROR}`)
+      traefik.http.routers.jellyseerr-private.tls: true
+      traefik.http.routers.jellyseerr-private.tls.certresolver: cfresolver
+      traefik.http.routers.jellyseerr-private.middlewares: private-to-public-redirect
+      traefik.http.routers.jellyseerr-private.service: noop@internal
       traefik.http.routers.jellyseerr.entrypoints: websecure
-      traefik.http.routers.jellyseerr.rule: Host(`${PRIVATE_HOST_JELLYSEERR:?UNSET_PRIVATE_HOST_JELLYSEERR_ERROR}`)
+      traefik.http.routers.jellyseerr.rule: Host(`${PUBLIC_HOST_JELLYSEERR:?UNSET_PUBLIC_HOST_JELLYSEERR_ERROR}`)
       traefik.http.routers.jellyseerr.tls: true
       traefik.http.routers.jellyseerr.tls.certresolver: cfresolver
-      traefik.http.routers.jellyseerr-public.entrypoints: websecure
-      traefik.http.routers.jellyseerr-public.rule: Host(`${PUBLIC_HOST_JELLYSEERR:?UNSET_PUBLIC_HOST_JELLYSEERR_ERROR}`)
-      traefik.http.routers.jellyseerr-public.tls: true
-      traefik.http.routers.jellyseerr-public.tls.certresolver: cfresolver
-      traefik.http.routers.jellyseerr-public.middlewares: cloudflare
+      traefik.http.routers.jellyseerr.middlewares: cloudflare
     networks:
       - default
       - proxy
