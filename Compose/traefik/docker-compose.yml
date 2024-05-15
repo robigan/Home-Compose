@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   reverse-proxy:
-    image: traefik:v2.9
+    image: traefik:v2.11.2 # Use the traefik image
     networks:
       - default # Defualt network that Traefik can use for update checking
       - proxy # Proxy network
@@ -27,6 +27,8 @@ services:
       - "--log.level=${LOG_LEVEL:-ERROR}" # Log level definition, see https://doc.traefik.io/traefik/observability/logs/#level
       - "--experimental.plugins.cloudflarewarp.modulename=github.com/BetterCorp/cloudflarewarp" # Add cloudflarewarp plugin
       - "--experimental.plugins.cloudflarewarp.version=v1.3.3" # Specify version(s)
+      - "--experimental.plugins.bouncer.modulename=github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin" # Add crowdsec bouncer plugin
+      - "--experimental.plugins.bouncer.version=v1.3.0" # Specify version(s)
       # Configure Cloudflare DNS Challenge
       - "--certificatesresolvers.cfresolver.acme.dnschallenge=true"
       - "--certificatesresolvers.cfresolver.acme.dnschallenge.provider=cloudflare"
@@ -43,33 +45,42 @@ services:
       traefik.http.routers.traefik.service: api@internal # Route to api service
       # Define cloudflare middleware
       traefik.http.middlewares.cloudflare.plugin.cloudflarewarp.disableDefault: false # Set the disable default to false. Creates the cloudflarewarp middleware and uses IPs listed at cloudflare.com
-      # Define crowdsec bouncer middleware
-      traefik.http.middlewares.crowdsec.forwardauth.address: http://bouncer:8080/api/v1/forwardAuth
-      traefik.http.middlewares.crowdsec.forwardauth.trustForwardHeader: true # Should be disabled but it isn't picking up trusted headers from cloudflare, therefore it sends the internal IP for querying instead
       traefik.http.middlewares.private-to-public-redirect.redirectregex.regex: "^https:\\/\\/([a-z0-9]+)\\.home\\.robigan\\.com\\/(.*)" # Redirect regex for private to public
       traefik.http.middlewares.private-to-public-redirect.redirectregex.replacement: https://$${1}.robigan.com/$${2} # Replacement for the redirect
       traefik.http.middlewares.private-to-public-redirect.redirectregex.permanent: true # Use a permanent redirect
+      # Define crowdsec bouncer middleware
+      traefik.http.middlewares.crowdsec.plugin.bouncer.enabled: true # Enable the bouncer middleware
+      traefik.http.middlewares.crowdsec.plugin.bouncer.loglevel: ${LOG_LEVEL_CROWDSEC:-INFO} # Log level for the bouncer, expected values are INFO, DEBUG
+      traefik.http.middlewares.crowdsec.plugin.bouncer.crowdsecMode: stream # Set the crowdsec mode to live, caches ban list and only updates every 60s
+      traefik.http.middlewares.crowdsec.plugin.bouncer.updateIntervalSeconds: ${CROWDSEC_UPDATE_INTERVAL:-60} # Set the update interval for the crowdsec ban list, only relevant in stream mode
+      traefik.http.middlewares.crowdsec.plugin.bouncer.crowdsecLapiKey: ${CROWDSEC_KEY:?UNSET_CROWDSEC_KEY_ERROR} # Set the crowdsec API key
+      traefik.http.middlewares.crowdsec.plugin.bouncer.crowdsecLapiHost: ${CROWDSEC_HOST:-host.docker.internal:7070} # Set the crowdsec address
+      traefik.http.middlewares.crowdsec.plugin.bouncer.forwardedHeadersTrustedIPs: 173.245.48.0/20, 103.21.244.0/22, 103.22.200.0/22, 103.31.4.0/22, 141.101.64.0/18, 108.162.192.0/18, 190.93.240.0/20, 188.114.96.0/20, 197.234.240.0/22, 198.41.128.0/17, 162.158.0.0/15, 104.16.0.0/13, 104.24.0.0/14, 172.64.0.0/13, 131.0.72.0/22, 2400:cb00::/32, 2606:4700::/32, 2803:f800::/32, 2405:b500::/32, 2405:8100::/32, 2a06:98c0::/29, 2c0f:f248::/32 # Cloudflare IP addresses
+      traefik.http.middlewares.crowdsec.plugin.bouncer.redisCacheEnabled: true # Enable the redis cache
+      traefik.http.middlewares.crowdsec.plugin.bouncer.redisCacheHost: "cache:6379" # Set the redis cache host
+      traefik.http.middlewares.crowdsec.plugin.bouncer.captchaProvider: ${CAPTCHA_PROVIDER:-turnstile} # Set the captcha provider
+      traefik.http.middlewares.crowdsec.plugin.bouncer.captchaSiteKey: ${CAPTCHA_SITE_KEY:?UNSET_CAPTCHA_SITE_KEY_ERROR} # Set the captcha site key
+      traefik.http.middlewares.crowdsec.plugin.bouncer.captchaSecretKey: ${CAPTCHA_SECRET_KEY:?UNSET_CAPTCHA_SECRET_KEY_ERROR} # Set the captcha secret key
+      traefik.http.middlewares.crowdsec.plugin.bouncer.captchaHTMLFilePath: "/captcha.html" # Set the captcha HTML file path, this is not necessarily needed as it is the default
+      traefik.http.middlewares.crowdsec.plugin.bouncer.banHTMLFilePath: "/ban.html" # Set the ban HTML file path, this IS needed as the default is blank to disable ban pages
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro # Mount the docker socket so that traefik can monitor it
       - acme:/acme # Directory for auto generated certificates
+      - ${CAPTCHA_TEMPLATE:-/home/main/crowdsec-bouncer-traefik-plugin/captcha.html}:/captcha.html:ro # Mount the captcha.html file for crowdsec
+      - ${BAN_TEMPLATE:-/home/main/crowdsec-bouncer-traefik-plugin/ban.html}:/ban.html:ro # Mount the ban.html file for crowdsec
     environment:
       CF_DNS_API_TOKEN: ${CF_DNS_TOKEN:?UNSET_CF_DNS_TOKEN_ERROR}
-
-  bouncer:
-    image: fbonalair/traefik-crowdsec-bouncer:latest
-    restart: unless-stopped
-    environment:
-      CROWDSEC_BOUNCER_API_KEY: ${CROWDSEC_KEY:-0}
-      CROWDSEC_AGENT_HOST: ${CROWDSEC_HOST:-host.docker.internal:7070}
-      CROWDSEC_BOUNCER_LOG_LEVEL: ${LOG_LEVEL_BOUNCER:-1} # Uses zerolog levels
-      GIN_MODE: release
-      TRUSTED_PROXIES: 173.245.48.0/20,103.21.244.0/22,103.22.200.0/22,103.31.4.0/22,141.101.64.0/18,108.162.192.0/18,190.93.240.0/20,188.114.96.0/20,197.234.240.0/22,198.41.128.0/17,162.158.0.0/15,104.16.0.0/13,104.24.0.0/14,172.64.0.0/13,131.0.72.0/22,2400:cb00::/32,2606:4700::/32,2803:f800::/32,2405:b500::/32,2405:8100::/32,2a06:98c0::/29,2c0f:f248::/32 # List of cloudflare IPs to trust forwarding for
-    networks:
-      - default # Defualt network that we can use to communicate with Traefik
     extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - "host.docker.internal:host-gateway" # Add host.docker.internal to the container's hosts file, so that it can access the host's network
+
+  cache: # Redis cache for crowdsec
+    image: redis:7-alpine
+    restart: unless-stopped
     expose:
-      - 8080
+      - 6379
+    command: redis-server --save 60 1 --loglevel warning # Write to disk every 60s, if 1 key changed. If container is stopped but pulled back up, it will have the same state as before
+    networks:
+      - default
 
 networks:
   proxy: # Connect to proxy network
