@@ -73,10 +73,10 @@ services:
       - consume:/usr/src/paperless/consume
     labels:
       traefik.enable: true
-      traefik.http.routers.radarr.entrypoints: websecure
-      traefik.http.routers.radarr.rule: Host(`${PRIVATE_HOST:?UNSET_PRIVATE_HOST_ERROR}`)
-      traefik.http.routers.radarr.tls: true
-      traefik.http.routers.radarr.tls.certresolver: cfresolver
+      traefik.http.routers.paperless.entrypoints: websecure
+      traefik.http.routers.paperless.rule: Host(`${PRIVATE_HOST:?UNSET_PRIVATE_HOST_ERROR}`)
+      traefik.http.routers.paperless.tls: true
+      traefik.http.routers.paperless.tls.certresolver: cfresolver
     environment:
       PAPERLESS_URL: https://${PRIVATE_HOST:?UNSET_PRIVATE_HOST_ERROR}
       #PAPERLESS_TRUSTED_PROXIES: 172.21.0.0/16
