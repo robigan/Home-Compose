@@ -13,6 +13,7 @@ services:
       traefik.http.routers.prowlarr.rule: Host(`${PRIVATE_HOST_PROWLARR:?UNSET_PRIVATE_HOST_PROWLARR_ERROR}`)
       traefik.http.routers.prowlarr.tls: true
       traefik.http.routers.prowlarr.tls.certresolver: cfresolver
+      traefik.http.routers.prowlarr.middlewares: crowdsec
     networks:
       - default
       - proxy
@@ -81,7 +82,7 @@ services:
       traefik.http.routers.jellyseerr.rule: Host(`${PUBLIC_HOST_JELLYSEERR:?UNSET_PUBLIC_HOST_JELLYSEERR_ERROR}`)
       traefik.http.routers.jellyseerr.tls: true
       traefik.http.routers.jellyseerr.tls.certresolver: cfresolver
-      traefik.http.routers.jellyseerr.middlewares: cloudflare
+      traefik.http.routers.jellyseerr.middlewares: cloudflare, crowdsec
     networks:
       - default
       - proxy
@@ -108,6 +109,7 @@ services:
       traefik.http.routers.radarr.rule: Host(`${PRIVATE_HOST_RADARR:?UNSET_PRIVATE_HOST_RADARR_ERROR}`)
       traefik.http.routers.radarr.tls: true
       traefik.http.routers.radarr.tls.certresolver: cfresolver
+      traefik.http.routers.radarr.middlewares: crowdsec
     networks:
       - default
       - proxy
@@ -137,6 +139,7 @@ services:
       traefik.http.routers.sonarr.rule: Host(`${PRIVATE_HOST_SONARR:?UNSET_PRIVATE_HOST_SONARR_ERROR}`)
       traefik.http.routers.sonarr.tls: true
       traefik.http.routers.sonarr.tls.certresolver: cfresolver
+      traefik.http.routers.sonarr.middlewares: crowdsec
     networks:
       - default
       - proxy
@@ -180,6 +183,7 @@ services:
       traefik.http.routers.transmission.rule: Host(`${PRIVATE_HOST_TRANSMISSION:?UNSET_PRIVATE_HOST_TRANSMISSION_ERROR}`)
       traefik.http.routers.transmission.tls: true
       traefik.http.routers.transmission.tls.certresolver: cfresolver
+      traefik.http.routers.transmission.middlewares: crowdsec
     networks:
       - default
       - proxy
