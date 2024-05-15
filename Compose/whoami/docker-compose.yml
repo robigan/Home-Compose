@@ -6,15 +6,17 @@ services:
     image: traefik/whoami
     labels:
       traefik.enable: true # Enable this container traefik
-      traefik.http.routers.whoami.entrypoints: websecure # Add a router for whoami in my home
-      traefik.http.routers.whoami.rule: Host(`${PRIVATE_HOST:?UNSET_PRIVATE_HOST_ERROR}`) # Must match the Host defined by PRIVATE_HOST variable in the compose
-      traefik.http.routers.whoami.tls: true # Must use TLS
+      traefik.http.routers.whoami-private.entrypoints: websecure # Add a router for whoami in my home
+      traefik.http.routers.whoami-private.rule: Host(`${PRIVATE_HOST:?UNSET_PRIVATE_HOST_ERROR}`) # Must match the Host defined by PRIVATE_HOST variable in the compose
+      traefik.http.routers.whoami-private.tls: true # Must use TLS
+      traefik.http.routers.whoami-private.tls.certresolver: cfresolver
+      traefik.http.routers.whoami-private.middlewares: private-to-public-redirect
+      traefik.http.routers.whoami-private.service: noop@internal
+      traefik.http.routers.whoami.entrypoints: websecure
+      traefik.http.routers.whoami.rule: Host(`${PUBLIC_HOST:?UNSET_PUBLIC_HOST_ERROR}`) # Same as the standard whoami router except create another router for public oriented operations
+      traefik.http.routers.whoami.tls: true
       traefik.http.routers.whoami.tls.certresolver: cfresolver
-      traefik.http.routers.whoami-public.entrypoints: websecure
-      traefik.http.routers.whoami-public.rule: Host(`${PUBLIC_HOST:?UNSET_PUBLIC_HOST_ERROR}`) # Same as the standard whoami router except create another router for public oriented operations
-      traefik.http.routers.whoami-public.tls: true
-      traefik.http.routers.whoami-public.tls.certresolver: cfresolver
-      traefik.http.routers.whoami-public.middlewares: cloudflare, crowdsec # The public router traffic must come from Cloudflare proxies and crowdsec needs to be able to inspect traffic
+      traefik.http.routers.whoami.middlewares: cloudflare, crowdsec # The public router traffic must come from Cloudflare proxies and crowdsec needs to be able to inspect traffic
       traefik.http.services.whoami-whoami.loadbalancer.server.port: 80 # Specify port 80
     networks:
       - proxy # Attach this container to the proxy network
