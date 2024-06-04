@@ -158,7 +158,7 @@ services:
       retries: 3
       
   recyclarr:
-    image: ghcr.io/recyclarr/recyclarr
+    image: ghcr.io/recyclarr/recyclarr:latest
     restart: unless-stopped
     networks:
       - default
