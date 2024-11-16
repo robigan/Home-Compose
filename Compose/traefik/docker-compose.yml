@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   reverse-proxy:
-    image: traefik:v2.11.2 # Use the traefik image
+    image: traefik:v3.2 # Use the traefik image
     networks:
       - default # Defualt network that Traefik can use for update checking
       - proxy # Proxy network
@@ -12,6 +12,7 @@ services:
     restart: unless-stopped
     command:
       - "--global.sendanonymoususage=false" # Disable anonymous usage data
+      - "--core.defaultRuleSyntax=v2" # Use the v2 rule syntax compat flag
       - "--entrypoints.web.address=:80" # Provide an entrypoint for HTTP traffic
       # Doesn't redirect by default to HTTPS scheme for services that legitimately need HTTP
       - "--entrypoints.websecure.address=:443" # Provide a secure entrypoint for HTTPS traffic
