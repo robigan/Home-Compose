@@ -12,7 +12,6 @@ services:
     restart: unless-stopped
     command:
       - "--global.sendanonymoususage=false" # Disable anonymous usage data
-      - "--core.defaultRuleSyntax=v2" # Use the v2 rule syntax compat flag
       - "--entrypoints.web.address=:80" # Provide an entrypoint for HTTP traffic
       # Doesn't redirect by default to HTTPS scheme for services that legitimately need HTTP
       - "--entrypoints.websecure.address=:443" # Provide a secure entrypoint for HTTPS traffic
