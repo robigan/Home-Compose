@@ -34,6 +34,15 @@ services:
       - "--certificatesresolvers.cfresolver.acme.dnschallenge.provider=cloudflare"
       - "--certificatesresolvers.cfresolver.acme.email=robigan@robigan.com"
       - "--certificatesresolvers.cfresolver.acme.storage=/acme/acme.json"
+      - "--metrics.otlp=${ENABLE_OTLP:-false}" # Enable OpenTelemetry metrics
+      - "--metrics.otlp.pushInterval=60s" # Set the push interval for OpenTelemetry metrics
+      - "--metrics.otlp.grpc=true" # Enable gRPC for OpenTelemetry metrics
+      - "--metrics.otlp.grpc.endpoint=${OTLP_HOST:-host.docker.internal:4317}" # Set the gRPC endpoint for OpenTelemetry metrics
+      - "--metrics.otlp.grpc.insecure=${OTLP_INSECURE:-false}" # Enable insecure gRPC for OpenTelemetry metrics because we are sending to host endpoint
+      - "--tracing.otlp=${ENABLE_OTLP:-false}" # Enable OpenTelemetry tracing
+      - "--tracing.otlp.grpc=true" # Enable gRPC for OpenTelemetry tracing
+      - "--tracing.otlp.grpc.endpoint=${OTLP_HOST:-host.docker.internal:4317}" # Set the gRPC endpoint for OpenTelemetry metrics
+      - "--tracing.otlp.grpc.insecure=${OTLP_INSECURE:-false}" # Enable insecure gRPC for OpenTelemetry tracing because we are sending to host endpoint
     labels:
       # Enable traefik labels for this definition
       traefik.enable: true
