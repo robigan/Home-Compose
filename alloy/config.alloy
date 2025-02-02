@@ -1,0 +1,160 @@
+// Read Grafana Cloud credentials
+local.file "secrets" {
+  filename = "/etc/alloy/secrets.json"
+  // is_secret = true // Until further support is added for processing secret files, this will be commented out
+}
+
+// Remote configuration for Grafana Cloud
+remotecfg {
+	url            = json_decode(local.file.secrets.content).fm_url
+	id             = constants.hostname
+	poll_frequency = "60s"
+
+	basic_auth {
+		username = json_decode(local.file.secrets.content).fm_username
+		password = json_decode(local.file.secrets.content).fm_api_key
+	}
+}
+
+// // Discover docker containers
+// discovery.docker "containers" {
+//   host = "unix:///var/run/docker.sock"
+// }
+
+// loki.source.docker "docker_logs" {
+//   host = "unix:///var/run/docker.sock"
+//   targets = discovery.docker.containers.targets
+//   forward_to = [loki.relabel.docker_logs.receiver]
+// }
+
+// // Relabel and send docker logs
+// loki.relabel "docker_logs" {
+//   rule {
+//     source_labels = ["job"]
+//     target_label = "job"
+//     replacement = "docker_logs"
+//   }
+
+//   rule {
+//     source_labels = ["__address__"]
+//     target_label = "instance"
+//     replacement = env("HOSTNAME")
+//   }
+
+//   forward_to = [loki.write.cloud.receiver]
+// }
+
+// loki.source.journal "journal" {
+//   forward_to = [loki.relabel.systemd_logs.receiver]
+// }
+
+// // Relabel and send systemd logs
+// loki.relabel "systemd_logs" {
+//   rule {
+//     source_labels = ["job"]
+//     target_label = "job"
+//     replacement = "systemd_logs"
+//   }
+
+//   rule {
+//     source_labels = ["__address__"]
+//     target_label = "instance"
+//     replacement = env("HOSTNAME")
+//   }
+
+//   forward_to = [loki.write.cloud.receiver]
+// }
+
+
+
+// Exporter and discovery pipeline
+// Self exporter
+prometheus.exporter.self "alloy_check" { }
+
+// Relabel metrics before they're scraped
+discovery.relabel "alloy_check" {
+  targets = prometheus.exporter.self.alloy_check.targets
+
+  rule {
+    target_label = "job"
+    replacement  = "integrations/alloy-check"
+  }
+}
+
+// Unix exporter
+prometheus.exporter.unix "unix_metrics" { }
+
+// Relabel metrics before they're scraped
+discovery.relabel "unix_metrics" {
+  targets = prometheus.exporter.unix.unix_metrics.targets
+
+  rule {
+    target_label = "job"
+    replacement = "unix_exporter"
+  }
+}
+
+
+
+// Scraping pipeline
+
+// Configure a prometheus.scrape component to collect unix metrics
+// NB: This is similar to prometheus, and I presume snapshots for the WAL are taken here
+prometheus.scrape "unix_metrics" {
+  targets    = discovery.relabel.unix_metrics.output
+  forward_to = [prometheus.relabel.cloud.receiver]
+}
+
+// Configure a prometheus.scrape component to collect alloy_check metrics
+prometheus.scrape "alloy_check" {
+  targets    = discovery.relabel.alloy_check.output
+  forward_to = [prometheus.relabel.alloy_check.receiver]
+}
+
+// Relabel metrics before they're sent to the cloud, effectively filtering only the metrics we want to send
+prometheus.relabel "alloy_check" {
+  forward_to = [prometheus.relabel.cloud.receiver]
+
+  rule {
+    source_labels = ["__name__"]
+    regex         = "(prometheus_target_sync_length_seconds_sum|prometheus_target_scrapes_.*|prometheus_target_interval.*|prometheus_sd_discovered_targets|alloy_build.*|prometheus_remote_write_wal_samples_appended_total|process_start_time_seconds)"
+    action        = "keep"
+  }
+}
+
+
+
+// Cloud pipeline
+// Relabel and send host metrics before cloud
+prometheus.relabel "cloud" {
+  rule {
+    target_label = "instance"
+    replacement = constants.hostname
+  }
+
+  forward_to = [prometheus.remote_write.cloud.receiver]
+}
+
+// // Send logs to Grafana Cloud
+// loki.write "cloud" {
+//   endpoint {
+//     url = json_decode(local.file.secrets.content).loki_url
+
+//     basic_auth {
+//       username = json_decode(local.file.secrets.content).loki_username
+//       password = json_decode(local.file.secrets.content).loki_api_key
+//     }
+//   }
+// }
+
+// Send metrics to Grafana Cloud
+prometheus.remote_write "cloud" {
+  endpoint {
+    url = json_decode(local.file.secrets.content).prometheus_url
+
+    basic_auth {
+      username = json_decode(local.file.secrets.content).prometheus_username
+      password = json_decode(local.file.secrets.content).prometheus_api_key
+    }
+  }
+}
