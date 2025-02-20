@@ -1,0 +1,22 @@
+version: "3.9"
+services:
+  server:
+    image: tailscale/tailscale:latest
+    hostname: ${TS_HOSTNAME:?UNSET_TS_HOSTNAME_ERROR}
+    environment:
+      - TS_AUTHKEY=${TS_AUTHKEY:?UNSET_TS_AUTHKEY_ERROR}
+      - TS_EXTRA_ARGS=--advertise-exit-node
+      - TS_STATE_DIR=/var/lib/tailscale
+    volumes:
+      - tailscale-data:/var/lib/tailscale
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - net_admin
+      - sys_module
+    restart: unless-stopped
+    network_mode: host
+
+volumes:
+  tailscale-data:
+    driver: local
