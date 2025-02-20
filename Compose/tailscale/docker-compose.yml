@@ -5,7 +5,7 @@ services:
     hostname: ${TS_HOSTNAME:?UNSET_TS_HOSTNAME_ERROR}
     environment:
       - TS_AUTHKEY=${TS_AUTHKEY:?UNSET_TS_AUTHKEY_ERROR}
-      - TS_EXTRA_ARGS=--advertise-exit-node
+      - TS_EXTRA_ARGS=${TS_EXTRA_ARGS}
       - TS_STATE_DIR=/var/lib/tailscale
     volumes:
       - tailscale-data:/var/lib/tailscale
