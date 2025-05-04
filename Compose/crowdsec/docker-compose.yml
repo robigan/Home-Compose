@@ -6,8 +6,8 @@ services:
     restart: unless-stopped
     environment:
       TZ: ${TZ:-Europe/Rome}
-      ENROLL_KEY: ${CROWDSEC_ENROLL_KEY:?UNSET_CROWDSEC_ENROLL_KEY_ERROR}
-      ENROLL_INSTANCE_NAME: ${CROWDSEC_INSTANCE_NAME:?UNSET_CROWDSEC_INSTANCE_NAME_ERROR}
+      ENROLL_KEY: ${ENROLL_KEY:?UNSET_ENROLL_KEY_ERROR}
+      ENROLL_INSTANCE_NAME: ${INSTANCE_NAME:?UNSET_INSTANCE_NAME_ERROR}
       COLLECTIONS: "crowdsecurity/linux crowdsecurity/traefik crowdsecurity/http-cve"
     ports:
       - 8080:8080
