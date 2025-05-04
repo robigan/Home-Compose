@@ -11,11 +11,23 @@ services:
       COLLECTIONS: "crowdsecurity/linux crowdsecurity/traefik crowdsecurity/http-cve"
     ports:
       - 8080:8080
+    networks:
+      - default
+      - proxy
     volumes:
-      - crowdsec-db:/var/lib/crowdsec/data/
+      - db:/var/lib/crowdsec/data/
     configs:
       - source: crowdsec-config
         target: /etc/crowdsec/config.yaml.local
+
+networks:
+  proxy:
+    external: true
+    name: proxy
+
+volumes:
+  db:
+    name: crowdsec-db
 
 configs:
   crowdsec-config:
