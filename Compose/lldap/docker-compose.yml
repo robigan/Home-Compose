@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   server:
-    image: lldap/lldap:stable-rootless
+    image: lldap/lldap:stable-alpine-rootless
     depends_on:
       - db
     restart: unless-stopped
@@ -22,7 +22,7 @@ services:
       - ldap # Use the LDAP network
     volumes:
       - "data:/data"
-    user: "lldap" # Run as the lldap user
+    user: ${UID:-1000}:${GID:-1000} # Run as the lldap user, default UID and GID are 1000
     environment:
       TZ: ${TZ:-Europe/Rome}
       LLDAP_JWT_SECRET: ${LDAP_JWT_SECRET:?UNSET_LDAP_JWT_SECRET_ERROR}
