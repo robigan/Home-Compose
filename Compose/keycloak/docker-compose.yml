@@ -1,0 +1,58 @@
+version: "3.9"
+
+services:
+  server:
+    image: quay.io/keycloak/keycloak:26.3.1
+    restart: unless-stopped
+    expose:
+      - 8443 # Expose the Keycloak port
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?UNSET_KEYCLOAK_ADMIN_PASSWORD_ERROR}
+      KC_HOSTNAME: ${PUBLIC_HOST_KEYCLOAK:?UNSET_PUBLIC_HOST_KEYCLOAK_ERROR}
+      KC_PROXY_HEADERS: xforwarded
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://db/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: keycloak
+      KC_HTTP_ENABLED: false
+    command: start-dev
+    labels:
+      traefik.enable: true
+      traefik.http.routers.keycloak.entrypoints: websecure
+      traefik.http.routers.keycloak.rule: Host(`${PUBLIC_HOST_KEYCLOAK:?UNSET_PUBLIC_HOST_KEYCLOAK_ERROR}`)
+      traefik.http.routers.keycloak.tls: true
+      traefik.http.routers.keycloak.tls.certresolver: cfresolver
+      traefik.http.routers.keycloak.middlewares: cloudflare, crowdsec
+      traefik.http.services.keycloak.loadbalancer.server.port: 8443
+      traefik.http.services.keycloak.loadbalancer.server.scheme: https
+    networks:
+      - default
+      - proxy
+      - ldap
+    depends_on:
+      - db
+
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloak
+    networks:
+      - default
+
+networks:
+  proxy:
+    external: true
+    name: proxy
+  ldap:
+    external: true
+    name: ldap
+
+volumes:
+  data:
+  pgdata:
