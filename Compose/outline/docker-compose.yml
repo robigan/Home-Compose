@@ -34,6 +34,14 @@ services:
     networks:
       - default
       - proxy
+    labels:
+      traefik.enable: true
+      traefik.http.routers.outline.entrypoints: websecure
+      traefik.http.routers.outline.rule: Host(`${PUBLIC_HOST_OUTLINE:?UNSET_PUBLIC_HOST_OUTLINE_ERROR}`)
+      traefik.http.routers.outline.tls: true
+      traefik.http.routers.outline.tls.certresolver: cfresolver
+      traefik.http.routers.outline.middlewares: cloudflare, crowdsec
+      traefik.http.services.server-outline.loadbalancer.server.port: 3000
 
   redis:
     image: redis:8-alpine
