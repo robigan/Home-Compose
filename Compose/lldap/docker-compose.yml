@@ -1,7 +1,7 @@
 version: "3.9"
 
 services:
-  server:
+  lldap:
     image: lldap/lldap:stable-alpine-rootless
     depends_on:
       - db
@@ -50,7 +50,7 @@ services:
       traefik.http.routers.lldap-web.rule: Host(`${PRIVATE_HOST:?UNSET_PRIVATE_HOST_ERROR}`) # Use this host
       traefik.http.routers.lldap-web.tls: true # Enable TLS for this router
       traefik.http.routers.lldap-web.tls.certresolver: cfresolver # Use Cloudflare
-      traefik.http.services.server-lldap.loadbalancer.server.port: 17170 # The web port the service is listening on
+      traefik.http.services.lldap.loadbalancer.server.port: 17170 # The web port the service is listening on
   
   db:
     image: postgres:17-alpine
