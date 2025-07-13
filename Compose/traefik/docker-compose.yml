@@ -83,13 +83,18 @@ services:
       - "host.docker.internal:host-gateway" # Add host.docker.internal to the container's hosts file, so that it can access the host's network
 
   cache: # Redis cache for crowdsec
-    image: redis:7-alpine
+    image: redis:8-alpine
     restart: unless-stopped
     expose:
       - 6379
     command: redis-server --save 60 1 --loglevel warning # Write to disk every 60s, if 1 key changed. If container is stopped but pulled back up, it will have the same state as before
     networks:
       - default
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 30s
+      retries: 3
 
 networks:
   proxy: # Connect to proxy network
