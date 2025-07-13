@@ -1,0 +1,71 @@
+version: "3.9"
+services:
+  server:
+    image: outlinewiki/outline:0.85
+    expose:
+      - "3000"
+    environment:
+      NODE_ENV: production
+      URL: https://${PUBLIC_HOST_OUTLINE:?UNSET_PUBLIC_HOST_OUTLINE_ERROR}
+      PORT: 3000
+      WEB_CONCURRENCY: ${WEB_CONCURRENCY:-4}
+      SECRET_KEY: ${SECRET_KEY:?UNSET_SECRET_KEY_ERROR}
+      UTILS_SECRET: ${UTILS_SECRET:?UNSET_UTILS_SECRET_ERROR}
+      DEFAULT_LANGUAGE: ${DEFAULT_LANGUAGE:-en_US}
+      DATABASE_URL: postgres://outline:outline@postgres:5432/outline
+      PGSSLMODE: disable
+      REDIS_URL: redis://redis:6379
+      FORCE_HTTPS: false
+      OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:?UNSET_OIDC_CLIENT_ID_ERROR}
+      OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:?UNSET_OIDC_CLIENT_SECRET_ERROR}
+      OIDC_AUTH_URI: ${OIDC_AUTH_URI:?UNSET_OIDC_AUTH_URI_ERROR}
+      OIDC_TOKEN_URI: ${OIDC_TOKEN_URI:?UNSET_OIDC_TOKEN_URI_ERROR}
+      OIDC_USERINFO_URI: ${OIDC_USERINFO_URI:?UNSET_OIDC_USERINFO_URI_ERROR}
+      OIDC_LOGOUT_URI: ${OIDC_LOGOUT_URI:?UNSET_OIDC_LOGOUT_URI_ERROR}
+      OIDC_USERNAME_CLAIM: ${OIDC_USERNAME_CLAIM:-preferred_username}
+      OIDC_DISPLAY_NAME: ${OIDC_DISPLAY_NAME:-Keycloak}
+      OIDC_SCOPES: ${OIDC_SCOPES:-openid profile email}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    volumes:
+      - storage:/var/lib/outline/data
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - default
+      - proxy
+
+  redis:
+    image: redis:8-alpine
+    expose:
+      - "6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 30s
+      retries: 3
+
+  postgres:
+    image: postgres:17-alpine
+    expose:
+      - "5432"
+    volumes:
+      - db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-d", "outline", "-U", "outline"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    environment:
+      POSTGRES_DB: outline
+      POSTGRES_USER: outline
+      POSTGRES_PASSWORD: outline
+
+networks:
+  proxy:
+    external: true
+    name: proxy
+
+volumes:
+  storage:
+  db:
