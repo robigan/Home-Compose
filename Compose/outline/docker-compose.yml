@@ -26,6 +26,10 @@ services:
       OIDC_DISPLAY_NAME: ${OIDC_DISPLAY_NAME:-Keycloak}
       OIDC_SCOPES: ${OIDC_SCOPES:-openid profile email}
       LOG_LEVEL: ${LOG_LEVEL:-info}
+      SMTP_SERVICE: ${SMTP_SERVICE}
+      SMTP_USERNAME: ${SMTP_USERNAME}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL}
     volumes:
       - storage:/var/lib/outline/data
     depends_on:
