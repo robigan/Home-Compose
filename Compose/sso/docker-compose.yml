@@ -24,8 +24,10 @@ services:
       traefik.http.routers.keycloak.tls: true
       traefik.http.routers.keycloak.tls.certresolver: cfresolver
       traefik.http.routers.keycloak.middlewares: cloudflare, crowdsec
-      traefik.http.services.keycloak.loadbalancer.server.port: 8443
-      traefik.http.services.keycloak.loadbalancer.server.scheme: https
+      traefik.http.services.server-keycloak.loadbalancer.server.port: 8443
+      traefik.http.services.server-keycloak.loadbalancer.server.scheme: https
+      traefik.http.services.server-keycloak.loadbalancer.server.serversTransport: server-keycloak
+      traefik.serversTransport.server-keycloak.insecureSkipVerify: true
     networks:
       - default
       - proxy
