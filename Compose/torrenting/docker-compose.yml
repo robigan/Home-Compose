@@ -13,7 +13,7 @@ services:
       traefik.http.routers.prowlarr.rule: Host(`${PRIVATE_HOST_PROWLARR:?UNSET_PRIVATE_HOST_PROWLARR_ERROR}`)
       traefik.http.routers.prowlarr.tls: true
       traefik.http.routers.prowlarr.tls.certresolver: cfresolver
-      traefik.http.routers.prowlarr.middlewares: crowdsec
+      traefik.http.routers.prowlarr.middlewares: crowdsec, oidc-system
     networks:
       - default
       - proxy
@@ -139,7 +139,7 @@ services:
       traefik.http.routers.sonarr.rule: Host(`${PRIVATE_HOST_SONARR:?UNSET_PRIVATE_HOST_SONARR_ERROR}`)
       traefik.http.routers.sonarr.tls: true
       traefik.http.routers.sonarr.tls.certresolver: cfresolver
-      traefik.http.routers.sonarr.middlewares: crowdsec
+      traefik.http.routers.sonarr.middlewares: crowdsec, oidc-system
     networks:
       - default
       - proxy

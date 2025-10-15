@@ -54,6 +54,7 @@ services:
       traefik.http.routers.traefik.tls: true # Enable TLS for this router
       traefik.http.routers.traefik.tls.certresolver: cfresolver # Use the Let's Encrypt Cert
       traefik.http.routers.traefik.service: api@internal # Route to api service
+      traefik.http.routers.traefik.middlewares: oidc-system # Use the OIDC middleware for authentication
       # Define cloudflare middleware
       traefik.http.middlewares.cloudflare.plugin.cloudflarewarp.disableDefault: false # Set the disable default to false. Creates the cloudflarewarp middleware and uses IPs listed at cloudflare.com
       traefik.http.middlewares.private-to-public-redirect.redirectregex.regex: "^https:\\/\\/([a-z0-9]+)\\.home\\.robigan\\.com\\/(.*)" # Redirect regex for private to public
