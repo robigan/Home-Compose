@@ -83,6 +83,7 @@ services:
       traefik.http.middlewares.oidc-system.plugin.traefik-oidc-auth.provider.tokenValidation: AccessToken
       traefik.http.middlewares.oidc-system.plugin.traefik-oidc-auth.scopes: openid,email,profile # OIDC Scopes
       traefik.http.middlewares.oidc-system.plugin.traefik-oidc-auth.callbackUri: /oidc/callback # OIDC Callback URL
+      traefik.http.middlewares.oidc-system.plugin.traefik-oidc-auth.logoutUri: /oidc/logout # OIDC Logout URL
       traefik.http.middlewares.oidc-system.plugin.traefik-oidc-auth.sessionCookie.domain: "*.robigan.com" # Domain for the session cookie
       traefik.http.middlewares.oidc-system.plugin.traefik-oidc-auth.authorization.assertClaims[0].name: "resource_access.traefik-proxy.roles" # JSON path of claim to check
       traefik.http.middlewares.oidc-system.plugin.traefik-oidc-auth.authorization.assertClaims[0].allOf: "system" # Require all of the listed values
