@@ -74,14 +74,16 @@ services:
       traefik.http.middlewares.crowdsec.plugin.bouncer.captchaSecretKey: ${CAPTCHA_SECRET_KEY:?UNSET_CAPTCHA_SECRET_KEY_ERROR} # Set the captcha secret key
       traefik.http.middlewares.crowdsec.plugin.bouncer.captchaHTMLFilePath: "/captcha.html" # Set the captcha HTML file path, this is not necessarily needed as it is the default
       traefik.http.middlewares.crowdsec.plugin.bouncer.banHTMLFilePath: "/ban.html" # Set the ban HTML file path, this IS needed as the default is blank to disable ban pages
-      traefik.http.middlewares.oidc.plugin.traefik-oidc-auth.Secret: ${OIDC_SECRET:?UNSET_OIDC_SECRET_ERROR} # OIDC client secret
-      traefik.http.middlewares.oidc.plugin.traefik-oidc-auth.Provider.ClientID: ${OIDC_CLIENT_ID:?UNSET_OIDC_CLIENT_ID_ERROR} # OIDC Client ID
-      traefik.http.middlewares.oidc.plugin.traefik-oidc-auth.Provider.ClientSecret: ${OIDC_CLIENT_SECRET:?UNSET_OIDC_CLIENT_SECRET_ERROR} # OIDC Client Secret
-      traefik.http.middlewares.oidc.plugin.traefik-oidc-auth.Provider.Url: ${OIDC_ISSUER_URL:?UNSET_OIDC_ISSUER_URL_ERROR} # OIDC Issuer URL
-      traefik.http.middlewares.oidc.plugin.traefik-oidc-auth.Provider.UsePKCE: true # Use PKCE
-      traefik.http.middlewares.oidc.plugin.traefik-oidc-auth.Scopes: openid,email,profile # OIDC Scopes
-      traefik.http.middlewares.oidc.plugin.traefik-oidc-auth.CallbackUri: https://${PRIVATE_HOST:?UNSET_PRIVATE_HOST_ERROR}/oidc/callback # OIDC Callback URL
-      traefik.http.middlewares.oidc.plugin.traefik-oidc-auth.SessionCookie.Domain: "*.robigan.com"
+      traefik.http.middlewares.oidc-system.plugin.traefik-oidc-auth.secret: ${OIDC_SECRET:?UNSET_OIDC_SECRET_ERROR} # OIDC client secret
+      traefik.http.middlewares.oidc-system.plugin.traefik-oidc-auth.provider.clientID: ${OIDC_CLIENT_ID:?UNSET_OIDC_CLIENT_ID_ERROR} # OIDC Client ID
+      traefik.http.middlewares.oidc-system.plugin.traefik-oidc-auth.provider.clientSecret: ${OIDC_CLIENT_SECRET:?UNSET_OIDC_CLIENT_SECRET_ERROR} # OIDC Client Secret
+      traefik.http.middlewares.oidc-system.plugin.traefik-oidc-auth.provider.url: ${OIDC_ISSUER_URL:?UNSET_OIDC_ISSUER_URL_ERROR} # OIDC Issuer URL
+      traefik.http.middlewares.oidc-system.plugin.traefik-oidc-auth.provider.usePKCE: true # Use PKCE
+      traefik.http.middlewares.oidc-system.plugin.traefik-oidc-auth.scopes: openid,email,profile # OIDC Scopes
+      traefik.http.middlewares.oidc-system.plugin.traefik-oidc-auth.callbackUri: https://${PRIVATE_HOST:?UNSET_PRIVATE_HOST_ERROR}/oidc/callback # OIDC Callback URL
+      traefik.http.middlewares.oidc-system.plugin.traefik-oidc-auth.sessionCookie.domain: "*.robigan.com" # Domain for the session cookie
+      traefik.http.middlewares.oidc-system.traefik-oidc-auth.authorization.assertClaims[0].name: "resource_access.traefik-proxy.roles" # JSON path of claim to check
+      traefik.http.middlewares.oidc-system.traefik-oidc-auth.authorization.assertClaims[0].allOf: "system" # Require all of the listed values
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro # Mount the docker socket so that traefik can monitor it
       - acme:/acme # Directory for auto generated certificates
