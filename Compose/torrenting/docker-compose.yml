@@ -109,7 +109,7 @@ services:
       traefik.http.routers.radarr.rule: Host(`${PRIVATE_HOST_RADARR:?UNSET_PRIVATE_HOST_RADARR_ERROR}`)
       traefik.http.routers.radarr.tls: true
       traefik.http.routers.radarr.tls.certresolver: cfresolver
-      traefik.http.routers.radarr.middlewares: crowdsec
+      traefik.http.routers.radarr.middlewares: crowdsec, oidc-system
     networks:
       - default
       - proxy
