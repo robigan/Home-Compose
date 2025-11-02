@@ -31,15 +31,20 @@
 version: "3.9"
 services:
   broker:
-    image: docker.io/library/redis:7
+    image: redis:8-alpine
     restart: unless-stopped
     volumes:
       - redisdata:/data
     networks:
       - default
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 6
 
   db:
-    image: docker.io/library/postgres:15
+    image: postgres:18-alpine
     restart: unless-stopped
     volumes:
       - pgdata:/var/lib/postgresql/data
@@ -49,6 +54,11 @@ services:
       POSTGRES_PASSWORD: paperless
     networks:
       - default
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -h localhost -U paperless -d paperless']
+      interval: 10s
+      timeout: 10s
+      retries: 6
 
   webserver:
     image: ghcr.io/paperless-ngx/paperless-ngx:latest
