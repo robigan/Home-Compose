@@ -25,8 +25,8 @@ services:
       - "--providers.docker.network=proxy" # Set the default docker network to proxy
       - "--accesslog=${ACCESS_LOG:-false}" # Access log definition, values are 'true' or 'false' 
       - "--log.level=${LOG_LEVEL:-ERROR}" # Log level definition, see https://doc.traefik.io/traefik/observability/logs/#level
-      - "--experimental.plugins.traefik-get-real-ip.modulename=github.com/Paxxs/traefik-get-real-ip" # Add traefik-get-real-ip plugin
-      - "--experimental.plugins.traefik-get-real-ip.version=v1.0.3" # Specify version(s)
+      - "--experimental.plugins.real-ip.modulename=github.com/Paxxs/traefik-get-real-ip" # Add traefik-get-real-ip plugin
+      - "--experimental.plugins.real-ip.version=v1.0.3" # Specify version(s)
       - "--experimental.plugins.bouncer.modulename=github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin" # Add crowdsec bouncer plugin
       - "--experimental.plugins.bouncer.version=v1.3.0" # Specify version(s)
       # Configure Cloudflare DNS Challenge
