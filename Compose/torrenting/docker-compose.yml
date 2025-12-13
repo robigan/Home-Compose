@@ -1,4 +1,10 @@
 version: "3.9"
+
+configs:
+  recyclarr-config:
+    file: ./recyclarr.yml
+    external: true
+
 services:
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:latest
@@ -165,6 +171,12 @@ services:
       - proxy
     volumes:
       - rc-conf:/config
+    configs:
+      - source: recyclarr-config
+        target: /config/recyclarr.yml
+        uid: "1000"
+        gid: "1000"
+        mode: 0440
     environment:
       TZ: ${TZ:-Europe/Rome}
       SONARR_API_KEY: ${SONARR_API_KEY:-0}
