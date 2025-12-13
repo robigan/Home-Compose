@@ -3,7 +3,6 @@ version: "3.9"
 configs:
   recyclarr-config:
     file: ./recyclarr.yml
-    external: true
 
 services:
   prowlarr:
