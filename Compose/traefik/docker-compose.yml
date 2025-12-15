@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   reverse-proxy:
-    image: traefik:v3.2 # Use the traefik image
+    image: traefik:v3.6 # Use the traefik image
     networks:
       - default # Defualt network that Traefik can use for update checking
       - proxy # Proxy network
