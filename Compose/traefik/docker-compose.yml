@@ -24,6 +24,7 @@ services:
       - "--providers.docker.exposedbydefault=false" # Disable exposing services by default
       - "--providers.docker.network=proxy" # Set the default docker network to proxy
       - "--accesslog=${ACCESS_LOG:-false}" # Access log definition, values are 'true' or 'false' 
+      - "--accesslog.format=json" # Set access log format to json for easier parsing and increased details
       - "--log.level=${LOG_LEVEL:-ERROR}" # Log level definition, see https://doc.traefik.io/traefik/observability/logs/#level
       - "--experimental.plugins.real-ip.modulename=github.com/Paxxs/traefik-get-real-ip" # Add traefik-get-real-ip plugin
       - "--experimental.plugins.real-ip.version=v1.0.3" # Specify version(s)
